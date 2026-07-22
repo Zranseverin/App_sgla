@@ -1,0 +1,298 @@
+{% load static %}
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ page_title }} | {{ entreprise.raison_sociale }}</title>{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}"><link rel="stylesheet" href="{% static 'client/client.css' %}"><link rel="stylesheet" href="{% static 'passage/passage.css' %}">
+</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">{% include "dashboard/partials/sidebar.html" %}
+<div class="page">{% include "dashboard/partials/header.html" %}<main class="client-page"><div class="client-back"><a href="{% url 'passage:index' %}">← Retour aux passages</a></div>
+<section class="client-form-card passage-form-card"><div class="client-form-head"><span>FICHE DE PASSAGE</span><h1>{{ page_title }}</h1><p>Renseignez le lavage, les intervenants et la répartition financière.</p></div>
+<form method="post" id="passage-form">{% csrf_token %}
+{% if form.errors %}<div class="passage-form-errors" role="alert" aria-live="assertive">
+  <strong>Le passage n’a pas été enregistré. Corrigez les éléments suivants :</strong>
+  <ul>
+    {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+    {% for field in form %}{% for error in field.errors %}<li><b>{{ field.label }}</b> : {{ error }}</li>{% endfor %}{% endfor %}
+  </ul>
+</div>{% endif %}
+<section class="passage-entry-section">
+  <div class="passage-section-title"><span>1</span> Client</div>
+  <div class="entry-toggle" data-toggle-group="client">
+    <button type="button" data-mode="existing">Client existant</button>
+    <button type="button" data-mode="new">＋ Nouveau client</button>
+  </div>
+  <input type="hidden" name="client_mode" id="client-mode" value="{{ request.POST.client_mode|default:'existing' }}">
+  <div id="client-existing">
+    <div class="client-field"><label>Rechercher un client</label><select name="client" id="id_client" class="client-control">
+      <option value="">— Sélectionner un client —</option>
+      {% for client in clients %}<option value="{{ client.pk }}" data-code="{{ client.code }}" data-phone="{{ client.telephone }}" data-address="{{ client.adresse }}">{{ client.code }} · {{ client.nom_complet }} · {{ client.telephone }}</option>{% endfor %}
+    </select></div>
+    <div class="selection-recap" id="client-recap"></div>
+  </div>
+  <div id="client-new" class="new-entry-block" hidden>
+    <div class="client-form-grid">
+      <div class="client-field"><label>Nom complet *</label><input class="client-control" name="new_client_nom_complet" value="{{ request.POST.new_client_nom_complet }}" placeholder="Ex. Konan Aya"></div>
+      <div class="client-field"><label>Téléphone *</label><input class="client-control" name="new_client_telephone" value="{{ request.POST.new_client_telephone }}" placeholder="+225 07 00 00 00 00"></div>
+      <div class="client-field"><label>Email</label><input type="email" class="client-control" name="new_client_email" value="{{ request.POST.new_client_email }}" placeholder="client@example.com"></div>
+      <div class="client-field"><label>Adresse *</label><input class="client-control" name="new_client_adresse" value="{{ request.POST.new_client_adresse }}" placeholder="Quartier, ville"></div>
+    </div>
+  </div>
+</section>
+<section class="passage-entry-section">
+  <div class="passage-section-title"><span>2</span> Véhicule</div>
+  <div class="entry-toggle" data-toggle-group="vehicle">
+    <button type="button" data-mode="existing">Véhicule existant</button>
+    <button type="button" data-mode="new">＋ Nouveau véhicule</button>
+  </div>
+  <input type="hidden" name="vehicule_mode" id="vehicle-mode" value="{{ request.POST.vehicule_mode|default:'existing' }}">
+  <div id="vehicle-existing"><div class="client-field"><label>Véhicule du client</label><select name="vehicule" id="id_vehicule" class="client-control"><option value="">— Sélectionnez d’abord un client —</option></select></div><div class="selection-recap" id="vehicle-recap"></div></div>
+  <div id="vehicle-new" class="new-entry-block" hidden>
+    <div class="client-form-grid">
+      <div class="client-field"><label>Immatriculation *</label><input class="client-control" name="new_vehicle_immatriculation" value="{{ request.POST.new_vehicle_immatriculation }}" placeholder="Ex. CI-024-ABC"></div>
+      <div class="client-field"><label>Type</label><select class="client-control" name="new_vehicle_type_vehicule"><option value="CITADINE">Citadine</option><option value="BERLINE">Berline</option><option value="SUV">SUV</option><option value="UTILITAIRE">Utilitaire</option><option value="MOTO">Moto</option><option value="AUTRE">Autre</option></select></div>
+      <div class="client-field"><label>Marque</label><input class="client-control" name="new_vehicle_marque" value="{{ request.POST.new_vehicle_marque }}" placeholder="Toyota, Honda..."></div>
+      <div class="client-field"><label>Modèle</label><input class="client-control" name="new_vehicle_modele" value="{{ request.POST.new_vehicle_modele }}" placeholder="Corolla, Civic..."></div>
+      <div class="client-field"><label>Couleur</label><input class="client-control" name="new_vehicle_couleur" value="{{ request.POST.new_vehicle_couleur }}" placeholder="Noire, blanche..."></div>
+    </div>
+  </div>
+</section>
+<section class="passage-entry-section">
+  <div class="passage-section-title"><span>3</span> Prestation & piste</div>
+  <div class="passage-grid-3">
+    <div class="client-field"><label>Date et heure de début *</label>{{ form.date_heure_debut }}{% for error in form.date_heure_debut.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Date et heure de fin</label>{{ form.date_heure_fin }}{% for error in form.date_heure_fin.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Type de lavage *</label>{{ form.type_lavage }}{% for error in form.type_lavage.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Montant prestation</label><input id="wash-price-display" class="client-control amount-highlight" readonly></div>
+    <div class="client-field"><label>Piste (facultatif)</label>{{ form.piste_id }}{% for error in form.piste_id.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Employé réalisateur *</label>{{ form.employe_realisateur }}{% for error in form.employe_realisateur.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+  </div>
+</section>
+<section class="passage-entry-section">
+  <div class="passage-section-title"><span>4</span> Règlement</div>
+  <div class="passage-grid-3">
+    <div class="client-field"><label>Mode de règlement *</label>{{ form.mode_reglement }}{% for error in form.mode_reglement.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Statut du règlement *</label>{{ form.statut_reglement }}{% for error in form.statut_reglement.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Montant payé</label>{{ form.montant_paye }}{% for error in form.montant_paye.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+  </div>
+  <div id="partial-payment-block" class="partial-payment-block" hidden>
+    <strong>Paiement partiel</strong>
+    <div class="client-form-grid">
+      <div class="client-field"><label>Montant versé</label>{{ form.montant_partiel_verse }}{% for error in form.montant_partiel_verse.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+      <div class="client-field"><label>Montant restant</label>{{ form.montant_restant }}{% for error in form.montant_restant.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    </div>
+  </div>
+  <div class="payment-recap">
+    <div><span>Total de la prestation</span><strong id="total-display">0 {{ entreprise.devise }}</strong></div>
+    <div><span>Montant encaissé</span><strong id="paid-display">0 {{ entreprise.devise }}</strong></div>
+    <div><span>Commission laveur ({{ entreprise.taux_commission_laveur|floatformat:2 }} % encaissé)</span><strong id="commission-display">0 {{ entreprise.devise }}</strong></div>
+    <div><span>Net station</span><strong id="net-display">0 {{ entreprise.devise }}</strong></div>
+  </div>
+  <div class="financial-hidden">
+    {{ form.montant_total }}{{ form.commission_employe }}{{ form.net_station }}
+  </div>
+</section>
+<section class="passage-entry-section">
+  <div class="passage-section-title"><span>5</span> État du passage</div>
+  <div class="client-form-grid">
+    <div class="client-field"><label>Statut du passage</label>{{ form.statut }}{% for error in form.statut.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Date d’annulation</label>{{ form.date_annulation }}{% for error in form.date_annulation.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field passage-wide"><label>Motif d’annulation</label>{{ form.motif_annulation }}{% for error in form.motif_annulation.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+  </div>
+</section>
+<div class="client-form-actions"><a href="{% url 'passage:index' %}">Annuler</a><button>Enregistrer le passage</button></div></form></section>
+</main></div><script src="{% static 'dashboard/dashboard.js' %}"></script>
+{{ wash_prices|json_script:"wash-prices-data" }}
+<script>
+(function () {
+    const clientSelect = document.getElementById('id_client');
+    const vehicleSelect = document.getElementById('id_vehicule');
+    if (!clientSelect || !vehicleSelect) return;
+    const endpointTemplate = "{% url 'passage:vehicles_by_client' 999999999 %}";
+    const initialVehicle = "{{ selected_vehicle_id|default:'' }}";
+    const initialClient = "{{ selected_client_id|default:'' }}";
+    let setVehicleMode = function () {};
+    if (initialClient) clientSelect.value = initialClient;
+
+    function resetVehicles(message) {
+        vehicleSelect.innerHTML = '';
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = message;
+        vehicleSelect.appendChild(option);
+        vehicleSelect.disabled = true;
+    }
+
+    async function loadVehicles(clientId, selectedId) {
+        if (!clientId) {
+            resetVehicles('— Sélectionnez d’abord un client —');
+            return;
+        }
+        resetVehicles('Chargement des véhicules...');
+        try {
+            const url = endpointTemplate.replace('999999999', clientId);
+            const response = await fetch(url, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                credentials: 'same-origin'
+            });
+            if (!response.ok) throw new Error('Erreur HTTP');
+            const data = await response.json();
+            vehicleSelect.innerHTML = '';
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = data.vehicules.length
+                ? '— Sélectionner un véhicule —'
+                : 'Aucun véhicule pour ce client';
+            vehicleSelect.appendChild(emptyOption);
+            data.vehicules.forEach(vehicle => {
+                const option = document.createElement('option');
+                option.value = vehicle.id;
+                option.textContent = vehicle.label;
+                option.selected = String(vehicle.id) === String(selectedId);
+                vehicleSelect.appendChild(option);
+            });
+            vehicleSelect.disabled = data.vehicules.length === 0;
+        } catch (error) {
+            resetVehicles('Impossible de charger les véhicules');
+        }
+    }
+
+    clientSelect.addEventListener('change', function () {
+        setVehicleMode('existing');
+        loadVehicles(this.value, null);
+        const option = this.options[this.selectedIndex];
+        document.getElementById('client-recap').textContent = option.value
+            ? `${option.textContent} · ${option.dataset.address || ''}` : '';
+    });
+    vehicleSelect.addEventListener('change', function () {
+        document.getElementById('vehicle-recap').textContent =
+            this.value ? this.options[this.selectedIndex].textContent : '';
+    });
+    loadVehicles(clientSelect.value, initialVehicle);
+
+    function configureToggle(groupName, modeInput, existingBlock, newBlock) {
+        const group = document.querySelector(`[data-toggle-group="${groupName}"]`);
+        const applyMode = mode => {
+            modeInput.value = mode;
+            existingBlock.hidden = mode !== 'existing';
+            newBlock.hidden = mode !== 'new';
+            group.querySelectorAll('button').forEach(button => {
+                button.classList.toggle('active', button.dataset.mode === mode);
+            });
+        };
+        group.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => applyMode(button.dataset.mode));
+        });
+        applyMode(modeInput.value || 'existing');
+        return applyMode;
+    }
+    const setClientMode = configureToggle(
+        'client',
+        document.getElementById('client-mode'),
+        document.getElementById('client-existing'),
+        document.getElementById('client-new')
+    );
+    setVehicleMode = configureToggle(
+        'vehicle',
+        document.getElementById('vehicle-mode'),
+        document.getElementById('vehicle-existing'),
+        document.getElementById('vehicle-new')
+    );
+    document.querySelector('[data-toggle-group="client"] [data-mode="existing"]')
+        .addEventListener('click', function () {
+            setVehicleMode('existing');
+            loadVehicles(clientSelect.value, vehicleSelect.value || initialVehicle);
+        });
+    document.querySelector('[data-toggle-group="client"] [data-mode="new"]')
+        .addEventListener('click', function () {
+            setVehicleMode('new');
+            resetVehicles('Le véhicule sera créé avec le nouveau client');
+        });
+
+    const prices = JSON.parse(document.getElementById('wash-prices-data').textContent);
+    const washType = document.getElementById('id_type_lavage');
+    const paymentStatus = document.getElementById('id_statut_reglement');
+    const paidInput = document.getElementById('id_montant_paye');
+    const partialInput = document.getElementById('id_montant_partiel_verse');
+    const remainingInput = document.getElementById('id_montant_restant');
+    const totalInput = document.getElementById('id_montant_total');
+    const commissionInput = document.getElementById('id_commission_employe');
+    const netInput = document.getElementById('id_net_station');
+    const partialBlock = document.getElementById('partial-payment-block');
+    const money = value => Math.round(value || 0).toLocaleString('fr-FR') + ' {{ entreprise.devise }}';
+
+    function updatePayment(source) {
+        const total = Number(prices[washType.value] || 0);
+        let paid = Number(paidInput.value || 0);
+        if (paymentStatus.value === 'paye') {
+            paid = total;
+            paidInput.readOnly = true;
+            paidInput.value = total.toFixed(2);
+            partialInput.value = total.toFixed(2);
+        } else if (paymentStatus.value === 'non_paye') {
+            paid = 0;
+            paidInput.readOnly = true;
+            paidInput.value = '0.00';
+            partialInput.value = '0.00';
+        } else {
+            paidInput.readOnly = false;
+            const sourceInput = source === 'paid' ? paidInput : partialInput;
+            const enteredAmount = Number(sourceInput.value || 0);
+            paid = Math.min(Math.max(enteredAmount, 0), total);
+            // Ne pas reformater le champ à chaque frappe : cela bloquait la saisie.
+            if (enteredAmount > total) sourceInput.value = total.toFixed(2);
+            if (source === 'paid') {
+                partialInput.value = sourceInput.value;
+            } else {
+                paidInput.value = sourceInput.value;
+            }
+        }
+        const remaining = Math.max(total - paid, 0);
+        const commissionRate = Number('{{ entreprise.taux_commission_laveur }}'.replace(',', '.')) / 100;
+        const commission = Math.round(paid * commissionRate);
+        const net = paid - commission;
+        totalInput.value = total.toFixed(2);
+        remainingInput.value = remaining.toFixed(2);
+        commissionInput.value = commission.toFixed(2);
+        netInput.value = net.toFixed(2);
+        partialBlock.hidden = paymentStatus.value !== 'partiel';
+        document.getElementById('wash-price-display').value = money(total);
+        document.getElementById('total-display').textContent = money(total);
+        document.getElementById('paid-display').textContent = money(paid);
+        document.getElementById('commission-display').textContent = money(commission);
+        document.getElementById('net-display').textContent = money(net);
+    }
+    washType.addEventListener('change', () => updatePayment());
+    paymentStatus.addEventListener('change', function () {
+        if (this.value === 'partiel') {
+            paidInput.value = '';
+            partialInput.value = '';
+        }
+        updatePayment('partial');
+    });
+    paidInput.addEventListener('input', () => updatePayment('paid'));
+    partialInput.addEventListener('input', () => updatePayment('partial'));
+    updatePayment();
+
+    document.getElementById('passage-form').addEventListener('submit', function () {
+        const hasNewClientData = [
+            'new_client_nom_complet',
+            'new_client_telephone',
+            'new_client_adresse'
+        ].some(name => (this.elements[name]?.value || '').trim() !== '');
+        const hasNewVehicleData =
+            (this.elements.new_vehicle_immatriculation?.value || '').trim() !== '';
+
+        if (hasNewClientData) {
+            document.getElementById('client-mode').value = 'new';
+        }
+        if (hasNewVehicleData) {
+            document.getElementById('vehicle-mode').value = 'new';
+        }
+    });
+
+    const errorSummary = document.querySelector('.passage-form-errors');
+    if (errorSummary) {
+        errorSummary.scrollIntoView({behavior: 'smooth', block: 'center'});
+        errorSummary.focus({preventScroll: true});
+    }
+})();
+</script>
+</body></html>

@@ -1,0 +1,233 @@
+{% load static %}
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Configuration | SGLA</title>
+{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'authentication/profile.css' %}">
+<link rel="stylesheet" href="{% static 'authentication/configuration.css' %}">
+</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">{% include "dashboard/partials/header.html" %}
+<main class="configuration-page">
+{% if messages %}{% for message in messages %}<div class="profile-alert">{{ message }}</div>{% endfor %}{% endif %}
+<div class="configuration-title"><div><span>ADMINISTRATION</span><h1>Configuration</h1><p>Gérez les comptes, l’entreprise, les rôles et les civilités.</p></div></div>
+<nav class="configuration-tabs">
+    <a class="{% if active_tab == 'accounts' %}active{% endif %}" href="?tab=accounts">♙ Création de compte</a>
+    <a class="{% if active_tab == 'enterprise' %}active{% endif %}" href="?tab=enterprise">▣ Configuration de l’entreprise</a>
+    <a class="{% if active_tab == 'roles' %}active{% endif %}" href="?tab=roles">⚿ Création de rôle</a>
+    <a class="{% if active_tab == 'commissions' %}active{% endif %}" href="?tab=commissions">% Commission laveur</a>
+    <a class="{% if active_tab == 'civilities' %}active{% endif %}" href="?tab=civilities">◇ Civilité</a>
+    <a class="{% if active_tab == 'mail' %}active{% endif %}" href="?tab=mail">Configuration mail</a>
+    <a class="{% if active_tab == 'subscription' %}active{% endif %}" href="?tab=subscription">Abonnement</a>
+</nav>
+
+{% if active_tab == 'accounts' %}
+<section class="config-grid">
+    <article class="config-card"><div class="config-card-head"><h2>{% if edited_account %}Modifier le compte{% else %}Créer un compte utilisateur{% endif %}</h2><p>{% if edited_account %}Mettez à jour les informations et les accès de {{ edited_account.nom }}.{% else %}Ajoutez un membre à {{ entreprise.raison_sociale }}. Son mot de passe sera généré automatiquement et envoyé par email.{% endif %}</p></div>
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="{% if edited_account %}update_account{% else %}create_account{% endif %}">{% if edited_account %}<input type="hidden" name="account_id" value="{{ edited_account.pk }}">{% endif %}
+        {% for error in account_form.non_field_errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+        {% for field in account_form %}<div class="form-field"><label>{{ field.label }}</label>{{ field }}{% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}</div>{% endfor %}
+        <button class="config-submit" type="submit">{% if edited_account %}Enregistrer les modifications{% else %}＋ Créer le compte{% endif %}</button>{% if edited_account %}<a class="config-cancel" href="?tab=accounts">Annuler</a>{% endif %}
+    </form></article>
+    <article class="config-card config-list"><div class="config-card-head"><h2>Comptes récents</h2><p>{{ stats.total_users }} utilisateur{{ stats.total_users|pluralize }}</p></div>
+    {% for member in users %}<div class="config-list-row"><span class="mini-avatar">{% if member.photo %}<img src="{{ member.photo.url }}">{% else %}{{ member.nom|slice:":1"|upper }}{% endif %}</span><div><strong>{{ member.nom }}</strong><small>{{ member.matricule|default:"Sans matricule" }} · {{ member.email }}</small></div><b>{{ member.role.libelle }}</b><a class="config-edit" href="?tab=accounts&edit_account={{ member.pk }}">Modifier</a></div>{% empty %}<p class="empty-config">Aucun utilisateur.</p>{% endfor %}</article>
+</section>
+{% elif active_tab == 'enterprise' %}
+<section class="config-card enterprise-config-summary">
+    <div class="enterprise-config-logo">{% if entreprise.logo_url %}<img src="{{ entreprise.logo_url.url }}">{% else %}{{ entreprise.raison_sociale|slice:":2"|upper }}{% endif %}</div>
+    <div><span>ENTREPRISE CONNECTÉE</span><h2>{{ entreprise.raison_sociale }}</h2><p>{{ entreprise.slogan|default:"Aucun slogan défini" }}</p>
+    <dl><div><dt>Email</dt><dd>{{ entreprise.email_contact }}</dd></div><div><dt>Plan</dt><dd>{{ plan.nom }}</dd></div><div><dt>Devise</dt><dd>{{ entreprise.devise }}</dd></div><div><dt>Fuseau</dt><dd>{{ entreprise.fuseau_horaire }}</dd></div></dl></div>
+    <a href="{% url 'authentication:edit_enterprise_settings' %}">✎ Modifier la configuration</a>
+</section>
+{% elif active_tab == 'roles' %}
+<section class="config-grid">
+    <article class="config-card"><div class="config-card-head"><h2>{% if edited_role %}Modifier le rôle{% else %}Créer un rôle{% endif %}</h2><p>{% if edited_role %}Modifiez le libellé du rôle {{ edited_role.code }}.{% else %}Définissez un nouveau profil d’accès. Le code est généré automatiquement.{% endif %}</p></div>
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="{% if edited_role %}update_role{% else %}create_role{% endif %}">{% if edited_role %}<input type="hidden" name="role_id" value="{{ edited_role.pk }}">{% endif %}
+        {% for field in role_form %}<div class="form-field"><label>{{ field.label }}</label>{{ field }}{% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}</div>{% endfor %}
+        <button class="config-submit" type="submit">{% if edited_role %}Enregistrer les modifications{% else %}＋ Créer le rôle{% endif %}</button>{% if edited_role %}<a class="config-cancel" href="?tab=roles">Annuler</a>{% endif %}
+    </form></article>
+    <article class="config-card config-list"><div class="config-card-head"><h2>Rôles existants</h2><p>{{ roles|length }} rôle{{ roles|length|pluralize }}</p></div>
+    {% for role in roles %}<div class="config-list-row"><span class="role-config-icon">⚿</span><div><strong>{{ role.libelle }}</strong><small>Code : {{ role.code }}</small></div><b>{{ role.utilisateurs.count }} compte{{ role.utilisateurs.count|pluralize }}</b><a class="config-edit" href="?tab=roles&edit_role={{ role.pk }}">Modifier</a></div>{% endfor %}</article>
+</section>
+{% elif active_tab == 'civilities' %}
+<section class="config-grid">
+    <article class="config-card"><div class="config-card-head"><h2>Ajouter une civilité</h2><p>Créez les appellations utilisées dans les formulaires. Le code est généré automatiquement.</p></div>
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="create_civilite">
+        {% for field in civilite_form %}<div class="form-field {% if field.name == 'actif' %}checkbox-field{% endif %}"><label>{{ field.label }}</label>{{ field }}{% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}</div>{% endfor %}
+        <button class="config-submit" type="submit">＋ Ajouter la civilité</button>
+    </form></article>
+    <article class="config-card config-list"><div class="config-card-head"><h2>Civilités</h2><p>{{ civilites|length }} valeur{{ civilites|length|pluralize }}</p></div>
+    {% for item in civilites %}<div class="config-list-row"><span class="role-config-icon">◇</span><div><strong>{{ item.libelle }}</strong><small>Code : {{ item.code }}</small></div><b class="{% if item.actif %}active-value{% endif %}">{% if item.actif %}Active{% else %}Inactive{% endif %}</b></div>{% empty %}<p class="empty-config">Aucune civilité configurée.</p>{% endfor %}</article>
+</section>
+{% elif active_tab == 'commissions' %}
+<section class="config-grid commission-settings-grid">
+    <article class="config-card">
+        <div class="config-card-head"><h2>Commission des laveurs</h2><p>Définissez le pourcentage reversé au laveur sur chaque montant réellement encaissé.</p></div>
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="save_commission_settings">
+            {% for field in commission_form %}<div class="form-field"><label>{{ field.label }}</label>{{ field }}{% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}<small>Valeur comprise entre 0 et 100 %.</small></div>{% endfor %}
+            <button class="config-submit" type="submit">Enregistrer le pourcentage</button>
+        </form>
+    </article>
+    <aside class="config-card commission-preview">
+        <div class="config-card-head"><h2>Aperçu du calcul</h2><p>Exemple pour un encaissement de 10 000 {{ entreprise.devise }}.</p></div>
+        <div><span>Taux configuré</span><strong>{{ entreprise.taux_commission_laveur|floatformat:2 }} %</strong></div>
+        <div><span>Part du laveur</span><strong>{% widthratio entreprise.taux_commission_laveur 100 10000 %} {{ entreprise.devise }}</strong></div>
+        <div><span>Net station</span><strong>Calculé automatiquement dans chaque passage</strong></div>
+    </aside>
+</section>
+{% elif active_tab == 'mail' %}
+<section class="mail-config-grid">
+    <article class="config-card">
+        <div class="config-card-head"><h2>Configuration de l’envoi des emails</h2><p>Paramètres SMTP propres à {{ entreprise.raison_sociale }}.</p></div>
+        <form method="post" class="mail-config-form">
+            {% csrf_token %}<input type="hidden" name="action" value="save_mail_configuration">
+            {% for error in mail_form.non_field_errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+            <div class="mail-fields-grid">
+            {% for field in mail_form %}
+                <div class="form-field {% if field.name == 'utiliser_tls' or field.name == 'utiliser_ssl' or field.name == 'actif' %}mail-checkbox{% endif %}">
+                    <label>{{ field.label }}</label>{{ field }}
+                    {% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                </div>
+            {% endfor %}
+            </div>
+            <button class="config-submit" type="submit">Enregistrer la configuration</button>
+        </form>
+    </article>
+    <aside class="config-card mail-help-card">
+        <div class="config-card-head"><h2>Tester la messagerie</h2><p>Un message sera envoyé à l’adresse de l’entreprise.</p></div>
+        <div class="mail-test-content">
+            <div class="mail-provider-info">
+                <span>DESTINATAIRE DU TEST</span><strong>{{ entreprise.email_contact }}</strong>
+                <span>SERVEUR ACTUEL</span><strong>{% if mail_config %}{{ mail_config.serveur_smtp }}:{{ mail_config.port_smtp }}{% else %}Non configuré{% endif %}</strong>
+                <span>ÉTAT</span><strong>{% if mail_config.actif %}Actif{% else %}Inactif{% endif %}</strong>
+            </div>
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="test_mail_configuration"><button class="mail-test-button" type="submit" {% if not mail_config %}disabled{% endif %}>Envoyer un email de test</button></form>
+            <p class="mail-security-note">Le mot de passe SMTP est chiffré avant son stockage. Pour Gmail, utilisez un mot de passe d’application et non votre mot de passe habituel.</p>
+        </div>
+    </aside>
+</section>
+{% else %}
+<section class="subscription-overview">
+    <article class="config-card subscription-status {% if not subscription_active %}expired{% endif %}">
+        <div>
+            <span class="subscription-label">ÉTAT DE L’ABONNEMENT</span>
+            <h2>{% if trial_expired %}Votre essai gratuit est terminé{% elif entreprise.statut_abonnement == 'actif' %}Abonnement actif{% else %}Essai gratuit en cours{% endif %}</h2>
+            <p>
+                {% if trial_expired %}
+                    Choisissez un plan et procédez au paiement pour continuer à utiliser la plateforme.
+                {% elif entreprise.statut_abonnement == 'actif' %}
+                    Votre entreprise utilise actuellement le plan {{ plan.nom }}.
+                {% else %}
+                    Votre essai se termine le {{ entreprise.date_fin_essai|date:"d/m/Y" }} — {{ stats.jours_restants }} jour{{ stats.jours_restants|pluralize }} restant{{ stats.jours_restants|pluralize }}.
+                {% endif %}
+            </p>
+        </div>
+        <span class="subscription-badge">{% if subscription_active %}Actif{% else %}Expiré{% endif %}</span>
+    </article>
+
+    <div class="plans-grid">
+        {% for available_plan in available_plans %}
+        <article class="plan-card {% if available_plan.pk == plan.pk %}current{% endif %}">
+            {% if available_plan.pk == plan.pk %}<span class="current-plan">PLAN ACTUEL</span>{% endif %}
+            <h3>{{ available_plan.nom }}</h3>
+            <p>{{ available_plan.description|default:"Les outils essentiels pour votre entreprise." }}</p>
+            <div class="plan-price"><strong>{{ available_plan.prix_mensuel|floatformat:0 }}</strong> <span>{{ available_plan.devise }}/mois</span></div>
+            <ul>
+                <li>{{ available_plan.max_utilisateurs|default:"Illimité" }} utilisateurs</li>
+                <li>{{ available_plan.max_centres|default:"Illimité" }} centres</li>
+                <li>{{ available_plan.quota_sms_mensuel|default:"Illimité" }} SMS par mois</li>
+            </ul>
+            <button class="payment-button open-payment-modal" type="button"
+                data-plan-id="{{ available_plan.pk }}"
+                data-plan-name="{{ available_plan.nom }}"
+                data-plan-price="{{ available_plan.prix_mensuel|floatformat:0 }}"
+                data-plan-currency="{{ available_plan.devise }}">
+                {% if available_plan.pk == plan.pk and subscription_active %}Renouveler ce plan{% else %}Choisir et payer{% endif %}
+            </button>
+        </article>
+        {% empty %}
+        <article class="config-card empty-config">Aucun plan d’abonnement n’est disponible.</article>
+        {% endfor %}
+    </div>
+    {% if recent_payments %}
+    <article class="config-card payment-history">
+        <div class="config-card-head"><h2>Dernières transactions</h2><p>Suivi de vos paiements d’abonnement</p></div>
+        {% for payment in recent_payments %}
+        <div class="payment-history-row">
+            <div><strong>{{ payment.reference }}</strong><small>{{ payment.get_methode_display }} · {{ payment.created_at|date:"d/m/Y H:i" }}</small></div>
+            <span>{{ payment.montant|floatformat:0 }} {{ payment.devise }}</span>
+            <b class="payment-{{ payment.statut }}">{{ payment.get_statut_display }}</b>
+        </div>
+        {% endfor %}
+    </article>
+    {% endif %}
+</section>
+<div class="payment-modal" id="payment-modal" hidden>
+    <div class="payment-modal-backdrop" data-close-payment></div>
+    <div class="payment-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title">
+        <button class="payment-modal-close" type="button" data-close-payment>×</button>
+        <span class="subscription-label">PAIEMENT SÉCURISÉ</span>
+        <h2 id="payment-modal-title">Payer le plan <span data-payment-plan-name></span></h2>
+        <p class="modal-amount"><strong data-payment-amount></strong> <span data-payment-currency></span></p>
+        <form method="post" id="subscription-payment-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="initiate_payment">
+            <input type="hidden" name="plan_id" id="payment-plan-id">
+            <label>Moyen de paiement</label>
+            <div class="payment-methods">
+                {% for option in payment_methods %}
+                <label class="payment-method">
+                    <input type="radio" name="methode" value="{{ option.code }}" data-qr="{{ option.qr }}" required>
+                    <span>{{ option.label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="mobile-payment-fields" id="mobile-payment-fields" hidden>
+                <div class="qr-payment"><img id="payment-qr" alt="QR code de paiement"><small>Scannez avec l’application sélectionnée</small></div>
+                <div><label>Numéro Mobile Money</label><input type="tel" name="telephone" placeholder="+225 07 00 00 00 00" autocomplete="tel"><p>Vous recevrez une demande de confirmation sur votre téléphone.</p></div>
+            </div>
+            <div class="bank-card-fields" id="bank-card-fields" hidden>
+                <label>Nom sur la carte</label><input type="text" autocomplete="cc-name" data-card-field placeholder="NOM ET PRÉNOMS">
+                <label>Numéro de carte</label><input type="text" inputmode="numeric" autocomplete="cc-number" maxlength="19" data-card-field placeholder="0000 0000 0000 0000">
+                <div class="card-field-row"><div><label>Date d’expiration</label><input type="text" inputmode="numeric" autocomplete="cc-exp" maxlength="5" data-card-field placeholder="MM/AA"></div><div><label>CVV</label><input type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" data-card-field placeholder="•••"></div></div>
+                <p class="card-security">Ces informations ne sont pas enregistrées par SGLA. Elles seront transmises directement à la passerelle bancaire certifiée.</p>
+            </div>
+            <div class="other-payment-fields" id="other-payment-fields" hidden><p>Un conseiller vous contactera pour organiser le règlement par virement ou un autre moyen.</p></div>
+            <button class="payment-button" type="submit">Confirmer le paiement</button>
+        </form>
+    </div>
+</div>
+<script>
+(function () {
+    const modal = document.getElementById('payment-modal');
+    const planId = document.getElementById('payment-plan-id');
+    const mobile = document.getElementById('mobile-payment-fields');
+    const card = document.getElementById('bank-card-fields');
+    const other = document.getElementById('other-payment-fields');
+    const qr = document.getElementById('payment-qr');
+    document.querySelectorAll('.open-payment-modal').forEach(button => button.addEventListener('click', () => {
+        planId.value = button.dataset.planId;
+        modal.querySelector('[data-payment-plan-name]').textContent = button.dataset.planName;
+        modal.querySelector('[data-payment-amount]').textContent = button.dataset.planPrice;
+        modal.querySelector('[data-payment-currency]').textContent = button.dataset.planCurrency;
+        modal.hidden = false;
+        document.body.classList.add('modal-open');
+    }));
+    document.querySelectorAll('[data-close-payment]').forEach(button => button.addEventListener('click', () => {
+        modal.hidden = true;
+        document.body.classList.remove('modal-open');
+    }));
+    modal.querySelectorAll('input[name="methode"]').forEach(input => input.addEventListener('change', () => {
+        const isMobile = ['mtn', 'wave', 'orange', 'moov'].includes(input.value);
+        mobile.hidden = !isMobile;
+        card.hidden = input.value !== 'visa';
+        other.hidden = input.value !== 'autre';
+        qr.src = isMobile ? input.dataset.qr : '';
+        modal.querySelector('input[name="telephone"]').required = isMobile;
+        card.querySelectorAll('[data-card-field]').forEach(field => field.required = input.value === 'visa');
+    }));
+})();
+</script>
+{% endif %}
+</main></div><script src="{% static 'dashboard/dashboard.js' %}"></script></body></html>

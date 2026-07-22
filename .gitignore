@@ -1,0 +1,16 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+server.err.log
+server.out.log
+*.log
+.idea/
+.vscode/
+.qodo/
+.agents/

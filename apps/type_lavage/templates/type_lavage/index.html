@@ -1,0 +1,42 @@
+{% load static %}
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Types de lavage | {{ entreprise.raison_sociale }}</title>
+{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'type_lavage/type_lavage.css' %}">
+</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">{% include "dashboard/partials/header.html" %}
+<main class="wash-page">
+  {% if messages %}{% for message in messages %}<div class="wash-alert">{{ message }}</div>{% endfor %}{% endif %}
+  <div class="wash-page-head">
+    <div><span>CATALOGUE DES SERVICES</span><h1>Types de lavage</h1><p>Configurez les prestations proposées par {{ entreprise.raison_sociale }}.</p></div>
+    <a href="{% url 'type_lavage:create' %}">＋ Nouveau type</a>
+  </div>
+  <div class="wash-stats">
+    <article><small>Total</small><strong>{{ total }}</strong><span>types enregistrés</span></article>
+    <article><small>Actifs</small><strong>{{ actifs }}</strong><span>services disponibles</span></article>
+    <article><small>Inactifs</small><strong>{{ inactifs }}</strong><span>services masqués</span></article>
+  </div>
+  <section class="wash-card">
+    <div class="wash-table-wrap"><table class="wash-table">
+      <thead><tr><th>Service</th><th>Prix unitaire</th><th>Durée estimée</th><th>Statut</th><th>Dernière modification</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for item in types_lavage %}
+      <tr>
+        <td><strong>{{ item.libelle }}</strong><small>{{ item.description|default:"Aucune description"|truncatechars:85 }}</small></td>
+        <td><b>{{ item.prix_unitaire|floatformat:0 }} {{ entreprise.devise }}</b></td>
+        <td>{% if item.duree_estimee_min %}{{ item.duree_estimee_min }} min{% else %}—{% endif %}</td>
+        <td><span class="wash-status {% if not item.actif %}inactive{% endif %}">{% if item.actif %}Actif{% else %}Inactif{% endif %}</span></td>
+        <td>{{ item.updated_at|date:"d/m/Y H:i" }}</td>
+        <td><div class="wash-actions"><a href="{% url 'type_lavage:update' item.pk %}">Modifier</a><form method="post" action="{% url 'type_lavage:delete' item.pk %}" onsubmit="return confirm('Supprimer ce type de lavage ?')">{% csrf_token %}<button type="submit">Supprimer</button></form></div></td>
+      </tr>
+      {% empty %}<tr><td colspan="6" class="wash-empty"><strong>Aucun type de lavage</strong><span>Créez votre première prestation pour commencer.</span></td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </section>
+</main></div>
+<script src="{% static 'dashboard/dashboard.js' %}"></script>
+</body></html>

@@ -1,0 +1,44 @@
+<aside class="sidebar" id="sidebar">
+    <div class="brand">
+        {% if entreprise.logo_url %}
+            <img class="brand-logo" src="{{ entreprise.logo_url.url }}" alt="Logo {{ entreprise.raison_sociale }}">
+        {% else %}
+            <span class="brand-truck">▰</span>
+        {% endif %}
+        <div><strong>{{ entreprise.raison_sociale|default:"LOGITRUCK"|truncatechars:18 }}</strong><small>{{ entreprise.slogan|default:"Gestion de location"|truncatechars:30 }}</small></div>
+        <button class="sidebar-close" data-sidebar-close type="button">×</button>
+    </div>
+    <nav>
+        <a href="#"><i>⌂</i>Tableau de bord</a>
+        <a href="#"><i>☑</i>Missions</a>
+        <a class="{% if request.resolver_match.app_name == 'passage' %}active{% endif %}" href="{% url 'passage:index' %}"><i>↻</i>Passages</a>
+        <a class="{% if request.resolver_match.app_name == 'vehicule' %}active{% endif %}" href="{% url 'vehicule:index' %}"><i>▰</i>Véhicules</a>
+        <a class="{% if request.resolver_match.app_name == 'employe' %}active{% endif %}" href="{% url 'employe:index' %}"><i>♙</i>Employés</a>
+        <a class="{% if request.resolver_match.app_name == 'client' %}active{% endif %}" href="{% url 'client:index' %}"><i>♧</i>Clients</a>
+        <a href="#"><i>▧</i>Contrats</a>
+        <a class="{% if request.resolver_match.app_name == 'facture' %}active{% endif %}" href="{% url 'facture:index' %}"><i>▤</i>Factures</a>
+        <a href="#"><i>↔</i>Paiements</a>
+        <a href="#"><i>♢</i>Dépenses</a>
+        <a class="{% if request.resolver_match.app_name == 'caisse' %}active{% endif %}" href="{% url 'caisse:index' %}"><i>▣</i>Caisse</a>
+        <a class="{% if request.resolver_match.app_name == 'type_lavage' %}active{% endif %}" href="{% url 'type_lavage:index' %}"><i>◉</i>Types de lavage</a>
+        <a class="{% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard:index' %}"><i>⌕</i>Recherche & Reporting</a>
+        <a href="#"><i>♧</i>Rapports</a>
+        <details class="sidebar-config" {% if request.path == '/configuration/' %}open{% endif %}>
+            <summary><i>⚙</i>Configuration <span>⌄</span></summary>
+            <div>
+                <a href="{% url 'authentication:configuration' %}?tab=accounts">Création de compte</a>
+                <a href="{% url 'authentication:configuration' %}?tab=enterprise">Entreprise</a>
+                <a href="{% url 'authentication:configuration' %}?tab=roles">Création de rôle</a>
+                <a href="{% url 'authentication:configuration' %}?tab=civilities">Civilité</a>
+                <a href="{% url 'authentication:configuration' %}?tab=mail">Configuration mail</a>
+                <a href="{% url 'authentication:configuration' %}?tab=subscription">Abonnement</a>
+            </div>
+        </details>
+    </nav>
+    <div class="sidebar-user">
+        <span class="user-avatar">{% if user.photo %}<img src="{{ user.photo.url }}" alt="Photo de {{ user.nom }}">{% else %}{{ user_initials|default:"AD" }}{% endif %}</span>
+        <div><strong>Admin</strong><small>Administrateur</small></div>
+        <span>⌄</span>
+    </div>
+</aside>
+<div class="sidebar-overlay" data-sidebar-close></div>

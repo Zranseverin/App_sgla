@@ -1,0 +1,22 @@
+{% load static %}
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Véhicules | {{ entreprise.raison_sociale }}</title>
+{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'client/client.css' %}">
+</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">{% include "dashboard/partials/header.html" %}
+<main class="client-page">
+{% if messages %}{% for message in messages %}<div class="client-alert">{{ message }}</div>{% endfor %}{% endif %}
+<div class="client-head"><div><span>PARC AUTOMOBILE</span><h1>Véhicules</h1><p>Gérez les véhicules des clients de {{ entreprise.raison_sociale }}.</p></div><a href="{% url 'vehicule:create' %}">＋ Nouveau véhicule</a></div>
+<div class="client-toolbar"><form method="get"><input name="q" value="{{ query }}" placeholder="Rechercher par immatriculation, marque, modèle ou client..."><button>Rechercher</button></form><div><small>Total véhicules</small><strong>{{ total }}</strong></div></div>
+<section class="client-card"><div class="client-table-wrap"><table class="client-table">
+<thead><tr><th>Immatriculation</th><th>Véhicule</th><th>Type / Couleur</th><th>Propriétaire</th><th>Création</th><th>Actions</th></tr></thead>
+<tbody>{% for item in vehicules %}
+<tr><td><span class="client-code">{{ item.immatriculation }}</span></td><td><strong>{{ item.marque|default:"Marque inconnue" }} {{ item.modele|default:"" }}</strong></td><td><strong>{{ item.type_vehicule|default:"—" }}</strong><small>{{ item.couleur|default:"Couleur non renseignée" }}</small></td><td><strong>{{ item.client.nom_complet }}</strong><small>{{ item.client.telephone }}</small></td><td>{{ item.created_at|date:"d/m/Y H:i" }}</td><td><div class="client-actions"><a href="{% url 'vehicule:update' item.pk %}">Modifier</a><form method="post" action="{% url 'vehicule:delete' item.pk %}" onsubmit="return confirm('Supprimer ce véhicule ?')">{% csrf_token %}<button>Supprimer</button></form></div></td></tr>
+{% empty %}<tr><td colspan="6" class="client-empty"><strong>Aucun véhicule trouvé</strong><span>Ajoutez le premier véhicule d’un client.</span></td></tr>{% endfor %}</tbody>
+</table></div></section>
+</main></div><script src="{% static 'dashboard/dashboard.js' %}"></script>
+</body></html>

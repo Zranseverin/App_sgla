@@ -1,0 +1,30 @@
+{% load static %}
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modifier l’entreprise | SGLA</title>
+{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'authentication/profile.css' %}">
+</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">{% include "dashboard/partials/header.html" %}
+<main class="profile-page">
+<div class="profile-navigation"><a class="back-button" href="{% url 'authentication:enterprise_settings' %}">← Retour au profil entreprise</a><div class="profile-breadcrumb"><a href="{% url 'dashboard:index' %}">Tableau de bord</a><span>›</span><a href="{% url 'authentication:enterprise_settings' %}">Entreprise</a><span>›</span><strong>Modifier</strong></div></div>
+<section class="edit-card enterprise-edit-card">
+<div class="edit-card-head"><div class="profile-avatar-large profile-avatar-medium">▣</div><div><span class="profile-label">PARAMÈTRES</span><h1>Modifier l’entreprise</h1><p>Personnalisez l’identité et la configuration de votre espace.</p></div></div>
+<form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+{% for error in form.non_field_errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+<h2 class="form-section-title">Informations générales</h2>
+<div class="enterprise-form-grid">
+{% for field in form %}
+    <div class="form-field {% if field.name == 'logo_url' or field.name == 'favicon_url' or field.name == 'slogan' %}field-wide{% endif %}">
+        <label for="{{ field.id_for_label }}">
+            {% if field.name == "raison_sociale" %}Raison sociale{% elif field.name == "slogan" %}Slogan{% elif field.name == "logo_url" %}Logo de l’entreprise{% elif field.name == "favicon_url" %}Favicon{% elif field.name == "couleur_principale" %}Couleur principale{% elif field.name == "email_contact" %}Email de contact{% elif field.name == "telephone_contact" %}Téléphone{% elif field.name == "devise" %}Devise{% elif field.name == "langue" %}Langue{% elif field.name == "fuseau_horaire" %}Fuseau horaire{% else %}{{ field.label }}{% endif %}
+        </label>
+        {{ field }}{% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+    </div>
+{% endfor %}
+</div>
+<div class="form-actions"><a href="{% url 'authentication:enterprise_settings' %}">Annuler</a><button type="submit">✓ Enregistrer l’entreprise</button></div>
+</form></section>
+</main></div><script src="{% static 'dashboard/dashboard.js' %}"></script></body></html>

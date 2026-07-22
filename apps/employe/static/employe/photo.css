@@ -1,0 +1,2 @@
+.employe-avatar,.fiche-avatar{overflow:hidden}
+.employe-avatar img,.fiche-avatar img{width:100%;height:100%;object-fit:cover}

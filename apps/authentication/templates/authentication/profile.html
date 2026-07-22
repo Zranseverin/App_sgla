@@ -1,0 +1,67 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mon profil | SGLA</title>
+    {% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% elif entreprise.logo_url %}<link rel="icon" href="{{ entreprise.logo_url.url }}">{% endif %}
+    <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'authentication/profile.css' %}">
+</head>
+<body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">
+    {% include "dashboard/partials/header.html" %}
+    <main class="profile-page">
+        {% if messages %}{% for message in messages %}<div class="profile-alert">{{ message }}</div>{% endfor %}{% endif %}
+        <div class="profile-navigation">
+            <a class="back-button" href="{% url 'dashboard:index' %}">← Retour au tableau de bord</a>
+            <div class="profile-breadcrumb"><a href="{% url 'dashboard:index' %}">Tableau de bord</a><span>›</span><strong>Mon profil</strong></div>
+        </div>
+
+        <section class="profile-hero">
+            <div class="profile-avatar-large">{% if user.photo %}<img src="{{ user.photo.url }}" alt="Photo de {{ user.nom }}">{% else %}{{ user_initials|default:"AD" }}{% endif %}</div>
+            <div class="profile-identity">
+                <span class="profile-label">PROFIL UTILISATEUR</span>
+                <h1>{{ user.nom }}</h1>
+                <p>{{ user.role.libelle }} chez {{ entreprise.raison_sociale }}</p>
+            </div>
+            <a class="edit-profile-button" href="{% url 'authentication:edit_profile' %}">✎ Modifier le profil</a>
+        </section>
+
+        <div class="profile-grid">
+            <section class="profile-card">
+                <div class="profile-card-title"><div><h2>Informations personnelles</h2><p>Vos informations de compte</p></div><span>♙</span></div>
+                <dl class="profile-details">
+                    <div><dt>Nom complet</dt><dd>{{ user.nom }}</dd></div>
+                    <div><dt>Adresse email</dt><dd>{{ user.email }}</dd></div>
+                    <div><dt>Statut du compte</dt><dd><span class="account-status">{{ user.statut|capfirst }}</span></dd></div>
+                    <div><dt>Rôle</dt><dd>{{ user.role.libelle }}</dd></div>
+                    <div><dt>Membre depuis</dt><dd>{{ user.created_at|date:"d F Y" }}</dd></div>
+                    <div><dt>Dernière mise à jour</dt><dd>{{ user.updated_at|date:"d/m/Y à H:i" }}</dd></div>
+                </dl>
+            </section>
+
+            <section class="profile-card">
+                <div class="profile-card-title"><div><h2>Entreprise</h2><p>Espace professionnel associé</p></div><span>▣</span></div>
+                <dl class="profile-details">
+                    <div><dt>Identité visuelle</dt><dd>{% if entreprise.logo_url %}<img class="company-logo-preview" src="{{ entreprise.logo_url.url }}" alt="Logo {{ entreprise.raison_sociale }}">{% else %}Aucun logo{% endif %}</dd></div>
+                    <div><dt>Raison sociale</dt><dd>{{ entreprise.raison_sociale }}</dd></div>
+                    <div><dt>Slogan</dt><dd>{{ entreprise.slogan|default:"Non renseigné" }}</dd></div>
+                    <div><dt>Email de contact</dt><dd>{{ entreprise.email_contact }}</dd></div>
+                    <div><dt>Téléphone</dt><dd>{{ entreprise.telephone_contact|default:"Non renseigné" }}</dd></div>
+                    <div><dt>Plan</dt><dd><span class="plan-pill">{{ plan.nom }}</span></dd></div>
+                    <div><dt>Devise</dt><dd>{{ entreprise.devise }}</dd></div>
+                    <div><dt>Langue / Fuseau</dt><dd>{{ entreprise.langue|upper }} · {{ entreprise.fuseau_horaire }}</dd></div>
+                </dl>
+            </section>
+        </div>
+
+        <section class="security-card">
+            <div><span class="security-icon">⌾</span><div><h2>Sécurité du compte</h2><p>Votre mot de passe est protégé. Utilisez la procédure de réinitialisation si nécessaire.</p></div></div>
+            <a href="{% url 'authentication:forgot_password' %}">Changer le mot de passe</a>
+        </section>
+    </main>
+</div>
+<script src="{% static 'dashboard/dashboard.js' %}"></script>
+</body></html>

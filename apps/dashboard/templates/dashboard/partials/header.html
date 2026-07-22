@@ -1,0 +1,81 @@
+<header class="topbar">
+    <div class="breadcrumb">
+        <button class="menu-toggle" data-sidebar-open type="button">☰</button>
+        <strong>Recherche & Reporting</strong><span>›</span><strong>Détails Chauffeur</strong>
+    </div>
+    <div class="header-account">
+        <div class="header-company">
+            <span class="header-company-logo">
+                {% if entreprise.logo_url %}
+                    <img src="{{ entreprise.logo_url.url }}" alt="Logo {{ entreprise.raison_sociale }}">
+                {% else %}
+                    {{ entreprise.raison_sociale|slice:":2"|upper }}
+                {% endif %}
+            </span>
+            <span class="header-company-copy">
+                <small>Entreprise connectée</small>
+                <strong>{{ entreprise.raison_sociale }}</strong>
+            </span>
+        </div>
+        <div class="top-icons">
+            {% if entreprise.statut_abonnement == "essai" %}
+                <div class="trial-badge" title="Fin de l’essai : {{ entreprise.date_fin_essai|date:'d/m/Y' }}">
+                    <span>◷</span>
+                    <div>
+                        <small>Essai gratuit</small>
+                        <strong>{{ stats.jours_restants }} jour{{ stats.jours_restants|pluralize }} restant{{ stats.jours_restants|pluralize }}</strong>
+                    </div>
+                </div>
+            {% endif %}
+            <button type="button" aria-label="Aide">?</button>
+            <div class="notifications">
+                <button class="bell" type="button" data-notifications-toggle aria-expanded="false" aria-controls="notifications-panel">
+                    ♧{% if notification_passages_count %}<b data-notifications-count>{{ notification_passages_count }}</b>{% endif %}
+                </button>
+                <div class="notifications-panel" id="notifications-panel" data-notifications-panel hidden>
+                    <div class="notifications-head">
+                        <div><strong>Passages à suivre</strong><span>{{ notification_passages_count }} passage{{ notification_passages_count|pluralize }}</span></div>
+                    </div>
+                    <div class="notification-list">
+                        {% for passage_notification in notification_passages %}
+                        <a href="{% url 'passage:index' %}">
+                            <i class="notification-icon {% if passage_notification.statut == 'en_cours' %}notification-icon--blue{% else %}notification-icon--orange{% endif %}">{% if passage_notification.statut == 'en_cours' %}▶{% else %}◷{% endif %}</i>
+                            <div><strong>Passage #{{ passage_notification.pk }} · {{ passage_notification.get_statut_display }}</strong><p>{{ passage_notification.client.nom_complet }} · {{ passage_notification.vehicule.immatriculation }} · {{ passage_notification.type_lavage.libelle }}</p><small>{{ passage_notification.date_heure_debut|date:'d/m/Y H:i' }}</small></div>
+                            <span class="unread-dot"></span>
+                        </a>
+                        {% empty %}
+                        <div class="notification-empty">Aucun passage en attente ou en cours.</div>
+                        {% endfor %}
+                    </div>
+                    <a class="notifications-footer" href="{% url 'passage:index' %}">Voir tous les passages</a>
+                </div>
+            </div>
+        </div>
+        <div class="account-menu">
+            <button class="header-user" type="button" data-account-toggle aria-expanded="false" aria-controls="account-panel">
+                <span class="header-avatar">{% if user.photo %}<img src="{{ user.photo.url }}" alt="Photo de {{ user.nom }}">{% else %}{{ user_initials|default:"AD" }}{% endif %}</span>
+                <span class="header-user-copy">
+                    <strong>{{ user.nom }}</strong>
+                    <small>{{ user.role.libelle }}</small>
+                </span>
+                <span class="account-chevron">⌄</span>
+            </button>
+            <div class="account-panel" id="account-panel" data-account-panel hidden>
+                <div class="account-summary">
+                    <span class="header-avatar">{% if user.photo %}<img src="{{ user.photo.url }}" alt="Photo de {{ user.nom }}">{% else %}{{ user_initials|default:"AD" }}{% endif %}</span>
+                    <div><strong>{{ user.nom }}</strong><small>{{ user.email }}</small></div>
+                </div>
+                <nav>
+                    <a href="{% url 'authentication:profile' %}"><i>♙</i><span><strong>Mon profil</strong><small>Informations personnelles</small></span></a>
+                    <a href="{% url 'authentication:enterprise_settings' %}"><i>⚙</i><span><strong>Paramètres</strong><small>Profil de l’entreprise</small></span></a>
+                    <a class="logout-link" href="{% url 'authentication:deconnexion' %}"><i>↪</i><span><strong>Déconnexion</strong><small>Quitter votre session</small></span></a>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+<section class="searchbar">
+    <button class="select-btn">Chauffeur <span>⌄</span></button>
+    <label class="search-input"><input placeholder="Rechercher par nom, téléphone, matricule..."><span>⌕</span></label>
+    <button class="export-btn">Exporter / Imprimer <span>⌄</span></button>
+</section>

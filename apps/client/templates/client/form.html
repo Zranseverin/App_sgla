@@ -1,0 +1,22 @@
+{% load static %}
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ page_title }} | {{ entreprise.raison_sociale }}</title>
+{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'client/client.css' %}">
+</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">{% include "dashboard/partials/header.html" %}
+<main class="client-page">
+<div class="client-back"><a href="{% url 'client:index' %}">← Retour aux clients</a></div>
+<section class="client-form-card">
+  <div class="client-form-head"><span>FICHE CLIENT</span><h1>{{ page_title }}</h1><p>Le code client est généré automatiquement par le serveur.</p></div>
+  <form method="post">{% csrf_token %}
+    {% for error in form.non_field_errors %}<div class="client-error">{{ error }}</div>{% endfor %}
+    <div class="client-form-grid">{% for field in form %}<div class="client-field"><label>{{ field.label }}</label>{{ field }}{% for error in field.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>{% endfor %}</div>
+    <div class="client-form-actions"><a href="{% url 'client:index' %}">Annuler</a><button type="submit">Enregistrer le client</button></div>
+  </form>
+</section>
+</main></div><script src="{% static 'dashboard/dashboard.js' %}"></script>
+</body></html>

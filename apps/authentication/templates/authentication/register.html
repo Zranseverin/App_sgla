@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Créer mon entreprise | SGLA</title>
+    <style>
+        :root {
+            --primary: #0e7c86;
+            --primary-dark: #075b63;
+            --ink: #173438;
+            --muted: #64787b;
+            --line: #d8e4e5;
+            --surface: #ffffff;
+            --bg: #f2f7f7;
+            --danger: #b42318;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 5% 5%, #d2eff0 0, transparent 28%),
+                radial-gradient(circle at 95% 95%, #e0f0ed 0, transparent 30%),
+                var(--bg);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+        .page { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 30px 0 54px; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; }
+        .brand-mark {
+            display: grid; place-items: center; width: 42px; height: 42px;
+            border-radius: 13px; color: white; background: var(--primary);
+        }
+        a { color: var(--primary-dark); font-weight: 700; text-decoration: none; }
+        .intro { max-width: 700px; margin-bottom: 26px; }
+        h1 { margin: 0 0 10px; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -.04em; }
+        .intro p { margin: 0; color: var(--muted); font-size: 1.05rem; line-height: 1.6; }
+        form { display: grid; gap: 22px; }
+        .panel {
+            padding: 28px; border: 1px solid rgba(14, 124, 134, .14);
+            border-radius: 20px; background: rgba(255,255,255,.96);
+            box-shadow: 0 18px 55px rgba(23, 52, 56, .08);
+        }
+        .panel-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+        .step {
+            flex: 0 0 34px; display: grid; place-items: center; height: 34px;
+            border-radius: 50%; color: white; background: var(--primary); font-weight: 800;
+        }
+        h2 { margin: 1px 0 4px; font-size: 1.2rem; }
+        .hint { margin: 0; color: var(--muted); font-size: .92rem; }
+        .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+        .field.full { grid-column: 1 / -1; }
+        label { display: block; margin-bottom: 7px; font-size: .9rem; font-weight: 700; }
+        input, select {
+            width: 100%; min-height: 46px; padding: 11px 13px;
+            border: 1px solid var(--line); border-radius: 10px;
+            color: var(--ink); background: white; font: inherit; outline: none;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(14, 124, 134, .11);
+        }
+        .color-row { display: flex; align-items: center; gap: 10px; }
+        .color-row input { width: 74px; padding: 5px; cursor: pointer; }
+        .plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+        .plan { position: relative; }
+        .plan input { position: absolute; opacity: 0; pointer-events: none; }
+        .plan label {
+            height: 100%; margin: 0; padding: 20px; border: 2px solid var(--line);
+            border-radius: 15px; cursor: pointer; transition: .18s ease;
+        }
+        .plan input:checked + label {
+            border-color: var(--primary); background: #f0fbfb;
+            box-shadow: 0 0 0 3px rgba(14, 124, 134, .09);
+        }
+        .plan-name { display: block; margin-bottom: 8px; font-size: 1.05rem; }
+        .price { display: block; margin-bottom: 10px; font-size: 1.55rem; font-weight: 850; }
+        .price small { color: var(--muted); font-size: .75rem; font-weight: 600; }
+        .plan-copy, .limits { color: var(--muted); font-size: .86rem; line-height: 1.5; }
+        .trial { display: inline-block; margin-top: 12px; padding: 5px 9px; border-radius: 99px; background: #dff4ed; color: #087a55; font-size: .78rem; font-weight: 800; }
+        .error-summary, .error {
+            padding: 12px 14px; border-radius: 10px; color: var(--danger);
+            background: #fff1f0; font-size: .9rem;
+        }
+        .error { margin-top: 6px; padding: 7px 9px; }
+        .actions { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+        .actions p { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+        button {
+            flex: 0 0 auto; padding: 14px 24px; border: 0; border-radius: 11px;
+            color: white; background: var(--primary); font: inherit; font-weight: 800; cursor: pointer;
+        }
+        button:hover { background: var(--primary-dark); }
+        @media (max-width: 760px) {
+            .grid, .plans { grid-template-columns: 1fr; }
+            .panel { padding: 22px 18px; }
+            .actions { align-items: stretch; flex-direction: column; }
+            button { width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .page { width: min(100% - 20px, 1120px); padding: 16px 0 32px; }
+            .topbar { align-items: flex-start; gap: 14px; margin-bottom: 24px; }
+            .topbar > span { max-width: 145px; font-size: .84rem; text-align: right; }
+            .brand-mark { width: 38px; height: 38px; }
+            h1 { font-size: 1.8rem; }
+            .intro p { font-size: .95rem; }
+            .panel { padding: 19px 14px; border-radius: 15px; }
+            .panel-head { gap: 10px; }
+            .step { flex-basis: 30px; height: 30px; }
+            input, select { min-height: 48px; font-size: 16px; }
+            .plan label { padding: 17px; }
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <header class="topbar">
+        <div class="brand"><span class="brand-mark">SG</span> SGLA</div>
+        <span>Déjà client ? <a href="{% url 'authentication:connexion' %}">Se connecter</a></span>
+    </header>
+
+    <section class="intro">
+        <h1>Créez votre espace entreprise</h1>
+        <p>Configurez votre environnement, choisissez votre plan et démarrez votre essai gratuit en quelques minutes.</p>
+    </section>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="error-summary" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <section class="panel">
+            <div class="panel-head">
+                <span class="step">1</span>
+                <div><h2>Votre compte administrateur</h2><p class="hint">Ces identifiants vous permettront d’accéder à votre espace.</p></div>
+            </div>
+            <div class="grid">
+                <div class="field">
+                    <label for="{{ form.nom.id_for_label }}">Nom complet</label>
+                    {{ form.nom }}{% for error in form.nom.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.email.id_for_label }}">Email professionnel</label>
+                    {{ form.email }}{% for error in form.email.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.password.id_for_label }}">Mot de passe</label>
+                    {{ form.password }}{% for error in form.password.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.confirm_password.id_for_label }}">Confirmation</label>
+                    {{ form.confirm_password }}{% for error in form.confirm_password.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <span class="step">2</span>
+                <div><h2>Personnalisez votre entreprise</h2><p class="hint">Vous pourrez modifier ces informations plus tard.</p></div>
+            </div>
+            <div class="grid">
+                <div class="field">
+                    <label for="{{ form.entreprise_nom.id_for_label }}">Raison sociale</label>
+                    {{ form.entreprise_nom }}{% for error in form.entreprise_nom.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.telephone_contact.id_for_label }}">Téléphone</label>
+                    {{ form.telephone_contact }}{% for error in form.telephone_contact.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field full">
+                    <label for="{{ form.logo_url.id_for_label }}">Logo de l’entreprise <span class="hint">(PNG, JPG, WebP)</span></label>
+                    {{ form.logo_url }}{% for error in form.logo_url.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.favicon_url.id_for_label }}">Favicon <span class="hint">(PNG ou ICO)</span></label>
+                    {{ form.favicon_url }}{% for error in form.favicon_url.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.slogan.id_for_label }}">Slogan <span class="hint">(facultatif)</span></label>
+                    {{ form.slogan }}{% for error in form.slogan.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.couleur_principale.id_for_label }}">Couleur principale</label>
+                    <div class="color-row">{{ form.couleur_principale }} <span>Couleur de votre espace</span></div>
+                    {% for error in form.couleur_principale.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.devise.id_for_label }}">Devise</label>
+                    {{ form.devise }}{% for error in form.devise.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.langue.id_for_label }}">Langue</label>
+                    {{ form.langue }}{% for error in form.langue.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="field">
+                    <label for="{{ form.fuseau_horaire.id_for_label }}">Fuseau horaire</label>
+                    {{ form.fuseau_horaire }}{% for error in form.fuseau_horaire.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <span class="step">3</span>
+                <div><h2>Choisissez votre plan</h2><p class="hint">Aucun paiement n’est demandé pendant l’essai gratuit.</p></div>
+            </div>
+            <div class="plans">
+                {% for plan in plans %}
+                    <div class="plan">
+                        <input type="radio" name="plan" value="{{ plan.pk }}" id="plan-{{ plan.pk }}"
+                               {% if form.plan.value|stringformat:"s" == plan.pk|stringformat:"s" or not form.is_bound and forloop.first %}checked{% endif %}>
+                        <label for="plan-{{ plan.pk }}">
+                            <strong class="plan-name">{{ plan.nom }}</strong>
+                            <span class="price">{{ plan.prix_mensuel|floatformat:0 }} {{ plan.devise }} <small>/ mois</small></span>
+                            <span class="plan-copy">{{ plan.description }}</span>
+                            <div class="limits">
+                                {% if plan.max_utilisateurs %}{{ plan.max_utilisateurs }} utilisateurs{% else %}Utilisateurs illimités{% endif %}<br>
+                                {% if plan.max_centres %}{{ plan.max_centres }} centres{% else %}Centres illimités{% endif %}
+                            </div>
+                            <span class="trial">{{ plan.duree_essai_jours }} jours gratuits</span>
+                        </label>
+                    </div>
+                {% empty %}
+                    <div class="error-summary">Aucun plan n’est disponible actuellement.</div>
+                {% endfor %}
+            </div>
+            {% for error in form.plan.errors %}<div class="error">{{ error }}</div>{% endfor %}
+        </section>
+
+        <div class="actions">
+            <p>En créant votre compte, vous acceptez les conditions d’utilisation. Vous ne serez pas facturé pendant la période d’essai.</p>
+            <button type="submit">Créer mon entreprise</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gestion du personnel</title>
+  <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'client/client.css' %}">
+  <link rel="stylesheet" href="{% static 'employe/employe.css' %}">
+  <link rel="stylesheet" href="{% static 'employe/photo.css' %}">
+  <link rel="stylesheet" href="{% static 'employe/payroll.css' %}">
+</head>
+<body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include 'dashboard/partials/sidebar.html' %}
+<div class="page">
+{% include 'dashboard/partials/header.html' %}
+<main class="client-page">
+  {% if messages %}{% for message in messages %}<div class="client-alert">{{ message }}</div>{% endfor %}{% endif %}
+  <div class="personnel-head">
+    <div><span>RESSOURCES HUMAINES</span><h1>Gestion du personnel</h1><p>Fiches employés, informations salariales et habilitations.</p></div>
+    <a href="{% url 'employe:create' %}">＋ Nouvel employé</a>
+  </div>
+
+  <nav class="personnel-tabs" aria-label="Sections du personnel">
+    <a class="{% if active_tab == 'fiches' %}active{% endif %}" href="?tab=fiches{% if selected %}&employe={{ selected.pk }}{% endif %}">Fiches employés</a>
+    <a class="{% if active_tab == 'bulletins' %}active{% endif %}" href="?tab=bulletins{% if selected %}&employe={{ selected.pk }}{% endif %}">Bulletins de salaire</a>
+  </nav>
+
+  {% if active_tab == 'bulletins' %}
+  <section class="bulletins-panel">
+    <header class="bulletins-title"><div><h2>Bulletins de salaire · Masse salariale</h2><span>{{ bulletin.mois }}</span></div><span class="salary-status">{{ bulletin.statut }}</span></header>
+    {% if employes %}
+    <div class="payroll-table-wrap"><table class="payroll-table">
+      <thead><tr><th>Employé</th><th>Brut</th><th>Primes</th><th>CNPS</th><th>Retenues</th><th>Net à payer</th><th>Statut</th></tr></thead>
+      <tbody><tr>
+        <td><strong>{% if selected %}{{ selected.user.nom }}{% else %}Employé{% endif %}</strong><br><small>{% if selected %}{{ selected.poste }}{% endif %}</small></td>
+        <td>{{ bulletin.salaire_brut|floatformat:0 }} {{ entreprise.devise }}</td>
+        <td class="plus">+ {{ bulletin.primes_missions|floatformat:0 }}</td>
+        <td class="minus">− {{ bulletin.cotisation_cnps|floatformat:0 }}</td>
+        <td class="minus">− {{ bulletin.avance_salaire|floatformat:0 }}</td>
+        <td><strong>{{ bulletin.net_a_payer|floatformat:0 }} {{ entreprise.devise }}</strong></td>
+        <td><span class="salary-status">{{ bulletin.statut }}</span></td>
+      </tr></tbody>
+    </table></div>
+    {% else %}<div class="empty-bulletins">Aucun employé disponible pour établir un bulletin.</div>{% endif %}
+  </section>
+  {% else %}
+  <section class="personnel-shell">
+    <aside class="employe-list">
+      <form><input type="hidden" name="tab" value="fiches"><input name="q" value="{{ query }}" placeholder="Rechercher un employé…"><select name="statut" onchange="this.form.submit()"><option value="">Tous les statuts</option>{% for value,label in statuts_employe %}<option value="{{ value }}" {% if selected_statut == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></form>
+      <div class="employe-items">{% for employe in employes %}<a class="employe-item {% if selected.pk == employe.pk %}active{% endif %}" href="?tab=fiches&q={{ query|urlencode }}&statut={{ selected_statut }}&employe={{ employe.pk }}"><span class="employe-avatar">{% if employe.user.photo %}<img src="{{ employe.user.photo.url }}" alt="Photo de {{ employe.user.nom }}">{% else %}{{ employe.initiales }}{% endif %}</span><span><strong>{{ employe.user.nom }}</strong><small>{{ employe.poste }} · {{ employe.get_statut_display }}</small></span></a>{% empty %}<p class="empty">Aucun employé.</p>{% endfor %}</div>
+    </aside>
+    <article class="employe-detail">
+      {% if selected %}
+      <header><span class="fiche-avatar">{% if selected.user.photo %}<img src="{{ selected.user.photo.url }}" alt="Photo de {{ selected.user.nom }}">{% else %}{{ selected.initiales }}{% endif %}</span><div><h2>{{ selected.user.nom }}</h2><p>{{ selected.poste }} · Matricule {{ selected.user.matricule|default:'—' }}</p><span class="status status-{{ selected.statut }}">{{ selected.get_statut_display }}</span></div><a href="{% url 'employe:update' selected.pk %}">Modifier</a></header>
+      <div class="kpis"><div><small>Salaire brut</small><strong>{{ selected.salaire_brut|floatformat:0 }} {{ entreprise.devise }}</strong></div><div><small>Embauche</small><strong>{{ selected.date_embauche|date:'d/m/Y' }}</strong></div><div><small>Rôle</small><strong>{{ selected.user.role.libelle }}</strong></div></div>
+      <div class="info-grid"><section><h3>Informations personnelles</h3><p><span>Téléphone</span><b>{{ selected.user.telephone|default:'—' }}</b></p><p><span>Email</span><b>{{ selected.user.email }}</b></p><p><span>Date de naissance</span><b>{{ selected.date_naissance|date:'d/m/Y'|default:'—' }}</b></p><p><span>Pièce d’identité</span><b>{{ selected.numero_piece_identite|default:'—' }}</b></p><p><span>N° CNPS</span><b>{{ selected.numero_cnps|default:'—' }}</b></p></section><section><h3>Permis & paiement</h3><p><span>Catégorie permis</span><b>{{ selected.categorie_permis|default:'—' }}</b></p><p><span>N° permis</span><b>{{ selected.numero_permis|default:'—' }}</b></p><p><span>Expiration</span><b>{{ selected.expiration_permis|date:'d/m/Y'|default:'—' }}</b></p><p><span>Banque</span><b>{{ selected.banque|default:'—' }}</b></p><p><span>IBAN</span><b>{{ selected.iban|default:'—' }}</b></p></section></div>
+
+      <div class="payroll-sections">
+        <section class="payroll-card"><header class="payroll-title"><h3>Bulletin de salaire · Aperçu</h3><span>{{ bulletin.mois }} · {{ bulletin.statut }}</span></header><div class="payroll-lines"><div class="payroll-line"><span>Salaire brut de base</span><strong class="positive">+ {{ bulletin.salaire_brut|floatformat:0 }} {{ entreprise.devise }}</strong></div><div class="payroll-line"><span>Commissions réalisées ({{ bulletin.nombre_missions }} passage{{ bulletin.nombre_missions|pluralize }})</span><strong class="positive">+ {{ bulletin.primes_missions|floatformat:0 }} {{ entreprise.devise }}</strong></div><div class="payroll-line"><span>Cotisation CNPS (6.3%)</span><strong class="negative">− {{ bulletin.cotisation_cnps|floatformat:0 }} {{ entreprise.devise }}</strong></div></div><footer class="payroll-total"><b>NET À PAYER</b><strong>{{ bulletin.net_a_payer|floatformat:0 }} {{ entreprise.devise }}</strong></footer></section>
+        <section class="bonus-card"><header class="bonus-title"><h3>Commissions du mois · Passages réalisés</h3></header><div class="bonus-list">{% for prime in primes %}<div class="bonus-row"><span class="bonus-icon">{{ prime.icone }}</span><div class="bonus-copy"><strong>{{ prime.titre }}</strong><small>{{ prime.detail }}</small></div><div class="bonus-amount"><strong>{{ prime.montant|floatformat:0 }} {{ entreprise.devise }}</strong><span class="{{ prime.status_class }}">{{ prime.statut }}</span></div></div>{% empty %}<div class="empty-bulletins">Aucune commission enregistrée pour {{ bulletin.mois }}.</div>{% endfor %}</div></section>
+      </div>
+      {% else %}<div class="no-selection"><strong>Aucune fiche employé</strong><p>Créez la première fiche depuis un compte collaborateur existant.</p></div>{% endif %}
+    </article>
+  </section>
+  {% endif %}
+</main>
+</div>
+<script src="{% static 'dashboard/dashboard.js' %}"></script>
+</body></html>

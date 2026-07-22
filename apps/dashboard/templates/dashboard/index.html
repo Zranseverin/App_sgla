@@ -1,0 +1,86 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Détails Chauffeur | LOGITRUCK</title>
+    {% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% elif entreprise.logo_url %}<link rel="icon" href="{{ entreprise.logo_url.url }}">{% endif %}
+    <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+</head>
+<body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">
+    {% include "dashboard/partials/header.html" %}
+    <main>
+        <section class="driver-kpis">
+            <article class="driver-card">
+                <div class="driver-photo">👨🏾</div>
+                <div><div class="driver-name"><h1>KOUASSI JEAN</h1><span>Actif</span></div>
+                    <p>♧ Matricule : CH-00058</p><p>⌕ +225 07 58 69 12 34</p>
+                    <p>▣ Permis : A B C D</p><p>▧ Date d’embauche : 15/03/2022</p>
+                </div>
+            </article>
+            <article class="kpi"><i class="blue">▥</i><span>Missions réalisées</span><strong>48</strong><small>Missions</small></article>
+            <article class="kpi"><i class="green">✓</i><span>Taux réalisation</span><strong>92%</strong><small>Objectif : 52 missions</small></article>
+            <article class="kpi"><i class="orange">♨</i><span>Total paiements</span><strong>2 450 000</strong><small>FCFA</small></article>
+            <article class="kpi"><i class="purple">♙</i><span>Total primes</span><strong>350 000</strong><small>FCFA</small></article>
+            <article class="kpi"><i class="red">▣</i><span>Total prêts</span><strong>600 000</strong><small>FCFA</small><em>Solde restant : 200 000</em></article>
+        </section>
+
+        <section class="tabs">
+            <button class="active">◉ Vue d’ensemble</button><button>▰ Missions</button>
+            <button>▣ Paiements</button><button>♙ Primes</button><button>▧ Prêts</button><button>☆ Évaluations</button>
+            <div><button class="outline">▧ Générer relevé / état</button><button class="print">▣ Imprimer</button></div>
+        </section>
+
+        <section class="content-grid">
+            <div class="left">
+                <article class="box activity">
+                    <div class="activity-chart">
+                        <div class="box-title"><strong>Activité sur la période</strong><button>▣01/01/2024　→　31/05/2024　⌄</button></div>
+                        <div class="chart-row">
+                            <div class="donut"><div><strong>48</strong><span>Missions</span></div></div>
+                            <div class="chart-legend"><p><i class="dot blue-bg"></i>Terminées <strong>44 (92%)</strong></p><p><i class="dot orange-bg"></i>En cours <strong>3 (6%)</strong></p><p><i class="dot red-bg"></i>Annulées <strong>1 (2%)</strong></p></div>
+                        </div>
+                    </div>
+                    <div class="missions">
+                        <h3>Dernières missions</h3>
+                        <table><thead><tr><th>Date</th><th>Mission</th><th>Camion</th><th>Statut</th></tr></thead>
+                        <tbody><tr><td>28/05/2024</td><td>Abidjan – San Pedro</td><td>BEN 456</td><td><b class="done">Terminée</b></td></tr>
+                        <tr><td>26/05/2024</td><td>Abidjan – Yamoussoukro</td><td>BEN 123</td><td><b class="done">Terminée</b></td></tr>
+                        <tr><td>23/05/2024</td><td>Abidjan – Man</td><td>BEN 789</td><td><b class="done">Terminée</b></td></tr>
+                        <tr><td>21/05/2024</td><td>Abidjan – Bouaké</td><td>BEN 234</td><td><b class="pending">En cours</b></td></tr>
+                        <tr><td>18/05/2024</td><td>Abidjan – Daloa</td><td>BEN 456</td><td><b class="done">Terminée</b></td></tr></tbody></table>
+                        <a>Voir toutes les missions　→</a>
+                    </div>
+                </article>
+
+                <article class="box finance">
+                    <h3>Synthèse financière <span>(01/01/2024　→　31/05/2024)</span></h3>
+                    <div class="finance-cards"><div class="pay"><span>Total paiements</span><strong>2 450 000 FCFA</strong></div><div class="bonus"><span>Total primes</span><strong>350 000 FCFA</strong></div><div class="loan"><span>Total prêts accordés</span><strong>600 000 FCFA</strong></div><div class="balance"><span>Solde prêts restant</span><strong>200 000 FCFA</strong></div></div>
+                    <table><thead><tr><th>Type</th><th>Nombre</th><th>Montant total (FCFA)</th><th>Détails</th></tr></thead>
+                    <tbody><tr><td>Paiements (missions)</td><td>48</td><td>2 450 000</td><td><a>⊙ Voir détails</a></td></tr>
+                    <tr><td>Primes</td><td>7</td><td>350 000</td><td><a>⊙ Voir détails</a></td></tr>
+                    <tr><td>Prêts</td><td>3</td><td>600 000</td><td><a>⊙ Voir détails</a></td></tr></tbody></table>
+                </article>
+            </div>
+
+            <aside class="right">
+                <article class="box performance"><div class="box-title"><strong>Performance</strong><button>Cette année　⌄</button></div>
+                    <p><span>♨ Missions assignées</span><strong>52</strong></p><p><span>✓ Missions réalisées</span><strong>48</strong></p>
+                    <p><span>◉ Taux de réalisation</span><strong>92%</strong></p><p><span>⊗ Annulations</span><strong>1</strong></p>
+                    <p><span>◷ Retards</span><strong>2</strong></p><p><span>☆ Note moyenne</span><strong class="stars">★ ★ ★ ★ ◐ <i>☆</i>　6.6/5</strong></p>
+                </article>
+                <article class="box loans"><h3>Prêts en cours</h3>
+                    <table><thead><tr><th>Date</th><th>Montant</th><th>Remboursé</th><th>Solde</th><th>Statut</th></tr></thead>
+                    <tbody><tr><td>15/04/2024</td><td>300 000</td><td>200 000</td><td>100 000</td><td><b class="pending">En cours</b></td></tr>
+                    <tr><td>20/03/2024</td><td>200 000</td><td>100 000</td><td>100 000</td><td><b class="pending">En cours</b></td></tr>
+                    <tr><td>10/02/2024</td><td>100 000</td><td>-</td><td>100 000</td><td><b class="pending">En cours</b></td></tr></tbody></table>
+                    <div class="loan-total"><strong>Total solde restant</strong><span>200 000 FCFA</span></div><a>Voir tous les prêts　→</a>
+                </article>
+            </aside>
+        </section>
+    </main>
+</div>
+<script src="{% static 'dashboard/dashboard.js' %}"></script>
+</body></html>

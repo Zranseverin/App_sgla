@@ -1,0 +1,3 @@
+.payment-state{display:inline-flex;padding:5px 8px;border-radius:15px;font-size:9px;font-weight:800}
+.payment-paye{color:#197044;background:#e9f7ee}.payment-partiel{color:#1765a8;background:#e8f3ff}.payment-non_paye{color:#805f08;background:#fff4d5}.payment-annule{color:#b52e2e;background:#ffe9e9}
+.cash-collect{display:inline-flex;padding:7px 10px;border-radius:6px;color:#fff;background:var(--company-color);font-size:9px;font-weight:800;text-decoration:none}

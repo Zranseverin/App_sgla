@@ -1,0 +1,58 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Modifier mon profil | SGLA</title>
+    {% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% elif entreprise.logo_url %}<link rel="icon" href="{{ entreprise.logo_url.url }}">{% endif %}
+    <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'authentication/profile.css' %}">
+</head>
+<body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">
+    {% include "dashboard/partials/header.html" %}
+    <main class="profile-page">
+        <div class="profile-navigation">
+            <a class="back-button" href="{% url 'authentication:profile' %}">← Retour au profil</a>
+            <div class="profile-breadcrumb"><a href="{% url 'dashboard:index' %}">Tableau de bord</a><span>›</span><a href="{% url 'authentication:profile' %}">Mon profil</a><span>›</span><strong>Modifier</strong></div>
+        </div>
+        <section class="edit-card">
+            <div class="edit-card-head">
+                <div class="profile-avatar-large profile-avatar-medium">{{ user_initials|default:"AD" }}</div>
+                <div><span class="profile-label">MODIFICATION</span><h1>Modifier mon profil</h1><p>Mettez à jour vos informations personnelles.</p></div>
+            </div>
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                {% for error in form.non_field_errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                <div class="form-field photo-upload-field">
+                    <label for="{{ form.photo.id_for_label }}">Photo de profil</label>
+                    <div class="current-photo">
+                        {% if user.photo %}<img src="{{ user.photo.url }}" alt="Photo de {{ user.nom }}">{% else %}<span>{{ user_initials|default:"AD" }}</span>{% endif %}
+                        <div>{{ form.photo }}<small>PNG, JPG ou WebP. Utilisez une image carrée pour un meilleur rendu.</small></div>
+                    </div>
+                    {% for error in form.photo.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="form-field">
+                    <label for="{{ form.nom.id_for_label }}">Nom complet</label>
+                    {{ form.nom }}
+                    {% for error in form.nom.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="form-field">
+                    <label for="{{ form.email.id_for_label }}">Adresse email</label>
+                    {{ form.email }}
+                    {% for error in form.email.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                    <small>Cette adresse est utilisée pour vous connecter.</small>
+                </div>
+                <div class="readonly-field"><span>Entreprise</span><strong>{{ entreprise.raison_sociale }}</strong><small>Cette information ne peut pas être modifiée depuis le profil.</small></div>
+                <div class="readonly-field"><span>Rôle</span><strong>{{ user.role.libelle }}</strong></div>
+                <div class="form-actions">
+                    <a href="{% url 'authentication:profile' %}">Annuler</a>
+                    <button type="submit">✓ Enregistrer les modifications</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+<script src="{% static 'dashboard/dashboard.js' %}"></script>
+</body></html>

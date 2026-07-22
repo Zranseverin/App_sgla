@@ -1,0 +1,67 @@
+{% load static %}
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil entreprise | SGLA</title>
+{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'authentication/profile.css' %}">
+</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">{% include "dashboard/partials/header.html" %}
+<main class="profile-page">
+{% if messages %}{% for message in messages %}<div class="profile-alert">{{ message }}</div>{% endfor %}{% endif %}
+<div class="profile-navigation"><a class="back-button" href="{% url 'dashboard:index' %}">← Retour au tableau de bord</a><div class="profile-breadcrumb"><a href="{% url 'dashboard:index' %}">Tableau de bord</a><span>›</span><strong>Paramètres entreprise</strong></div></div>
+<section class="company-hero" style="--company-color:{{ entreprise.couleur_principale|default:'#1269d3' }}">
+    <div class="company-brand-preview">
+        {% if entreprise.logo_url %}<img src="{{ entreprise.logo_url.url }}" alt="Logo {{ entreprise.raison_sociale }}">{% else %}<span>{{ entreprise.raison_sociale|slice:":2"|upper }}</span>{% endif %}
+    </div>
+    <div class="profile-identity"><span class="profile-label">PROFIL ENTREPRISE</span><h1>{{ entreprise.raison_sociale }}</h1><p>{{ entreprise.slogan|default:"Aucun slogan défini" }}</p></div>
+    {% if can_edit_company %}<a class="edit-profile-button" href="{% url 'authentication:edit_enterprise_settings' %}">✎ Modifier l’entreprise</a>{% endif %}
+</section>
+<div class="profile-grid">
+    <section class="profile-card"><div class="profile-card-title"><div><h2>Informations générales</h2><p>Identité et coordonnées</p></div><span>▣</span></div>
+        <dl class="profile-details">
+            <div><dt>Raison sociale</dt><dd>{{ entreprise.raison_sociale }}</dd></div>
+            <div><dt>Slogan</dt><dd>{{ entreprise.slogan|default:"Non renseigné" }}</dd></div>
+            <div><dt>Email</dt><dd>{{ entreprise.email_contact }}</dd></div>
+            <div><dt>Téléphone</dt><dd>{{ entreprise.telephone_contact|default:"Non renseigné" }}</dd></div>
+            <div><dt>Couleur principale</dt><dd><span class="color-swatch" style="background:{{ entreprise.couleur_principale|default:'#1269d3' }}"></span>{{ entreprise.couleur_principale|default:"Non définie" }}</dd></div>
+        </dl>
+    </section>
+    <section class="profile-card"><div class="profile-card-title"><div><h2>Configuration</h2><p>Localisation et abonnement</p></div><span>⚙</span></div>
+        <dl class="profile-details">
+            <div><dt>Plan</dt><dd><span class="plan-pill">{{ plan.nom }}</span></dd></div>
+            <div><dt>Statut</dt><dd><span class="account-status">{{ entreprise.statut_abonnement|capfirst }}</span></dd></div>
+            <div><dt>Devise</dt><dd>{{ entreprise.devise }}</dd></div>
+            <div><dt>Langue</dt><dd>{{ entreprise.langue|upper }}</dd></div>
+            <div><dt>Fuseau horaire</dt><dd>{{ entreprise.fuseau_horaire }}</dd></div>
+        </dl>
+    </section>
+</div>
+<section class="profile-card branding-card"><div class="profile-card-title"><div><h2>Identité visuelle</h2><p>Logo et favicon utilisés dans l’application</p></div><span>◇</span></div>
+    <div class="branding-assets"><div><strong>Logo</strong>{% if entreprise.logo_url %}<img src="{{ entreprise.logo_url.url }}" alt="Logo">{% else %}<span>Aucun logo</span>{% endif %}</div><div><strong>Favicon</strong>{% if entreprise.favicon_url %}<img class="favicon-preview" src="{{ entreprise.favicon_url.url }}" alt="Favicon">{% else %}<span>Aucun favicon</span>{% endif %}</div></div>
+</section>
+<section class="profile-card company-history-card">
+    <div class="profile-card-title"><div><h2>Historique des abonnements</h2><p>Périodes d’essai et abonnements de {{ entreprise.raison_sociale }}</p></div><span>↻</span></div>
+    <div class="history-table-wrap"><table class="company-history-table">
+        <thead><tr><th>Type</th><th>Plan</th><th>Début</th><th>Fin</th><th>Statut</th></tr></thead>
+        <tbody>
+        {% for item in subscription_history %}
+        <tr><td>{{ item.type }}</td><td><strong>{{ item.plan.nom }}</strong></td><td>{{ item.start|date:"d/m/Y"|default:"—" }}</td><td>{{ item.end|date:"d/m/Y"|default:"—" }}</td><td><span class="history-status">{{ item.status }}</span></td></tr>
+        {% empty %}<tr><td colspan="5" class="history-empty">Aucun historique d’abonnement.</td></tr>{% endfor %}
+        </tbody>
+    </table></div>
+</section>
+<section class="profile-card company-history-card">
+    <div class="profile-card-title"><div><h2>Historique des paiements</h2><p>Transactions d’abonnement de l’entreprise connectée</p></div><span>¤</span></div>
+    <div class="history-table-wrap"><table class="company-history-table">
+        <thead><tr><th>Référence</th><th>Plan</th><th>Moyen</th><th>Date</th><th>Montant</th><th>Statut</th></tr></thead>
+        <tbody>
+        {% for payment in payment_history %}
+        <tr><td><strong>{{ payment.reference }}</strong></td><td>{{ payment.plan.nom }}</td><td>{{ payment.get_methode_display }}</td><td>{{ payment.created_at|date:"d/m/Y H:i" }}</td><td>{{ payment.montant|floatformat:0 }} {{ payment.devise }}</td><td><span class="history-status payment-{{ payment.statut }}">{{ payment.get_statut_display }}</span></td></tr>
+        {% empty %}<tr><td colspan="6" class="history-empty">Aucun paiement enregistré pour cette entreprise.</td></tr>{% endfor %}
+        </tbody>
+    </table></div>
+    {% if can_edit_company %}<div class="history-footer"><a href="{% url 'authentication:configuration' %}?tab=subscription">Gérer l’abonnement</a></div>{% endif %}
+</section>
+</main></div><script src="{% static 'dashboard/dashboard.js' %}"></script></body></html>

@@ -1,0 +1,32 @@
+{% load static %}
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clients | {{ entreprise.raison_sociale }}</title>
+{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'client/client.css' %}">
+</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">{% include "dashboard/partials/header.html" %}
+<main class="client-page">
+{% if messages %}{% for message in messages %}<div class="client-alert">{{ message }}</div>{% endfor %}{% endif %}
+<div class="client-head"><div><span>GESTION COMMERCIALE</span><h1>Clients</h1><p>Gérez les clients de {{ entreprise.raison_sociale }}.</p></div><a href="{% url 'client:create' %}">＋ Nouveau client</a></div>
+<div class="client-toolbar">
+  <form method="get"><input name="q" value="{{ query }}" placeholder="Rechercher par code, nom, téléphone ou email..."><button type="submit">Rechercher</button></form>
+  <div><small>Total clients</small><strong>{{ total }}</strong></div>
+</div>
+<section class="client-card"><div class="client-table-wrap"><table class="client-table">
+<thead><tr><th>Code</th><th>Client</th><th>Coordonnées</th><th>Adresse</th><th>Inscription</th><th>Actions</th></tr></thead>
+<tbody>
+{% for item in clients %}
+<tr>
+  <td><span class="client-code">{{ item.code }}</span></td>
+  <td><strong>{{ item.nom_complet }}</strong></td>
+  <td><strong>{{ item.telephone }}</strong><small>{{ item.email|default:"Aucun email" }}</small></td>
+  <td>{{ item.adresse }}</td><td>{{ item.date_inscription|date:"d/m/Y H:i" }}</td>
+  <td><div class="client-actions"><a href="{% url 'client:update' item.pk %}">Modifier</a><form method="post" action="{% url 'client:delete' item.pk %}" onsubmit="return confirm('Supprimer ce client ?')">{% csrf_token %}<button>Supprimer</button></form></div></td>
+</tr>
+{% empty %}<tr><td colspan="6" class="client-empty"><strong>Aucun client trouvé</strong><span>Créez votre premier client pour commencer.</span></td></tr>{% endfor %}
+</tbody></table></div></section>
+</main></div><script src="{% static 'dashboard/dashboard.js' %}"></script>
+</body></html>
