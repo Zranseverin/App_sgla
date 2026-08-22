@@ -2,7 +2,20 @@ from django.db import models
 
 
 class TypeLavage(models.Model):
+    TYPES_VEHICULE = [
+        ("tous", "Tous véhicules"),
+        ("moto", "Moto"),
+        ("tricycle", "Tricycle"),
+        ("voiture", "Voiture"),
+        ("suv_4x4", "SUV / 4x4"),
+        ("camionnette", "Camionnette"),
+        ("camion", "Camion"),
+        ("bus", "Bus / Minibus"),
+        ("autre", "Autre"),
+    ]
+
     libelle = models.CharField(max_length=100)
+    type_vehicule = models.CharField(max_length=20, choices=TYPES_VEHICULE, default="tous")
     description = models.TextField(null=True, blank=True)
     prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2)
     duree_estimee_min = models.IntegerField(null=True, blank=True)
@@ -44,7 +57,7 @@ class TypeLavage(models.Model):
 
     class Meta:
         db_table = "type_lavage"
-        ordering = ["libelle"]
+        ordering = ["type_vehicule", "libelle"]
 
     def __str__(self):
-        return self.libelle
+        return f"{self.libelle} — {self.get_type_vehicule_display()}"

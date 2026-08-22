@@ -1,0 +1,43 @@
+{% load static %}
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reporting | {{ entreprise.raison_sociale }}</title>{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}"><link rel="stylesheet" href="{% static 'dashboard/dynamic.css' %}?v=5"><link rel="stylesheet" href="{% static 'dashboard/reporting-dashboard.css' %}?v=1"><link rel="stylesheet" href="{% static 'dashboard/reporting-data.css' %}?v=2"></head>
+<body class="dashboard-body" style="--company-color:{{ entreprise.couleur_principale|default:'#1462d2' }}">{% include 'dashboard/partials/sidebar.html' %}<div class="page">{% include 'dashboard/partials/header.html' %}
+<main class="report-dashboard database-reporting">
+<header class="report-titlebar"><div><p><span>Recherche & Reporting</span><b>›</b> Données d’exploitation</p><h1>Reporting de la base de données</h1></div><a class="report-back" href="{% url 'dashboard:index' %}">← Tableau de bord</a></header>
+<form class="database-filters" method="get">
+  <label><span>Du</span><input type="date" name="debut" value="{{ date_start|date:'Y-m-d' }}"></label>
+  <label><span>Au</span><input type="date" name="fin" value="{{ date_end|date:'Y-m-d' }}"></label>
+  <label class="wide"><span>Recherche</span><input name="q" value="{{ query }}" placeholder="Client, immatriculation ou lavage"></label>
+  <label><span>Statut</span><select name="statut"><option value="">Tous</option>{% for value,label in status_choices %}<option value="{{ value }}"{% if selected_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <button>Actualiser le rapport</button><a href="{% url 'dashboard:reporting' %}">Réinitialiser</a>
+</form>
+<section class="reporting-kpis">
+  <article><span>Passages</span><strong>{{ report_stats.total }}</strong><small>Période sélectionnée</small></article>
+  <article><span>Terminés</span><strong>{{ report_stats.completed }}</strong><small>{{ report_stats.completion_rate }}% de réalisation</small></article>
+  <article><span>Chiffre d’affaires</span><strong>{{ report_stats.revenue|floatformat:0 }}</strong><small>{{ entreprise.devise }} encaissés</small></article>
+  <article><span>Reste à encaisser</span><strong>{{ report_stats.outstanding|floatformat:0 }}</strong><small>{{ entreprise.devise }}</small></article>
+  <article><span>Commissions</span><strong>{{ report_stats.commissions|floatformat:0 }}</strong><small>{{ entreprise.devise }}</small></article>
+</section>
+<section class="reporting-charts">
+  <article class="report-panel"><header><div><h2>Courbe d’évolution</h2><p>Passages quotidiens sur la période</p></div></header><div class="line-chart"><svg id="wash-evolution-chart" viewBox="0 0 700 240"></svg></div></article>
+  <article class="report-panel"><header><div><h2>Répartition des statuts</h2><p>Données réelles filtrées</p></div></header><div class="donut-layout"><div class="donut-chart" id="wash-status-chart"><div><strong>{{ report_stats.total }}</strong><small>Total</small></div></div><div class="donut-legend">{% for item in status_breakdown %}<p><span><i class="{{ item.color }}"></i>{{ item.label }}</span><strong>{{ item.count }} <small>{{ item.percent }}%</small></strong></p>{% endfor %}</div></div></article>
+</section>
+<section class="reporting-details">
+  <article class="report-panel reporting-table-panel"><header><div><h2>Détail des passages</h2><p>100 premières lignes de la sélection</p></div></header><div class="responsive-table"><table><thead><tr><th>Date</th><th>Client</th><th>Véhicule</th><th>Prestation</th><th>Total</th><th>Payé</th><th>Reste</th><th>Statut</th></tr></thead><tbody>
+  {% for item in passages %}<tr><td>{{ item.date_heure_debut|date:"d/m/Y H:i" }}</td><td>{{ item.client.nom_complet }}</td><td>{{ item.vehicule.immatriculation }}</td><td>{{ item.type_lavage.libelle }}</td><td>{{ item.montant_total|floatformat:0 }}</td><td>{{ item.montant_paye|floatformat:0 }}</td><td>{{ item.montant_restant|floatformat:0 }}</td><td><span class="live-status status-{{ item.statut }}">{{ item.get_statut_display }}</span></td></tr>{% empty %}<tr><td colspan="8" class="empty-row">Aucune donnée pour ces filtres.</td></tr>{% endfor %}
+  </tbody></table></div></article>
+  <article class="report-panel"><header><div><h2>Prestations les plus demandées</h2><p>Classement de la période</p></div></header><div class="wash-ranking">{% for wash in popular_washes %}<div><span class="rank">{{ forloop.counter }}</span><p><strong>{{ wash.libelle }}</strong><small>{{ wash.get_type_vehicule_display }} · {{ wash.passages_count }} passage{{ wash.passages_count|pluralize }}</small></p><b>{{ wash.revenue|default:0|floatformat:0 }} {{ entreprise.devise }}</b></div>{% empty %}<p class="empty-row">Aucune prestation sur la période.</p>{% endfor %}</div></article>
+</section>
+<section class="laveur-report-section">
+  <header><div><h2>Rapport par laveur</h2><p>Clients, véhicules, prestations, montants et commissions du {{ date_start|date:"d/m/Y" }} au {{ date_end|date:"d/m/Y" }}</p></div><strong>{{ laveur_reports|length }} laveur{{ laveur_reports|length|pluralize }}</strong></header>
+  {% for report in laveur_reports %}
+  <article class="laveur-report">
+    <header><div class="laveur-identity"><span>{% if report.laveur.photo %}<img src="{{ report.laveur.photo.url }}" alt="Photo">{% else %}{{ report.laveur.nom|slice:":2"|upper }}{% endif %}</span><div><h3>{{ report.laveur.nom }}</h3><small>{{ report.passages|length }} lavage{{ report.passages|length|pluralize }} sur la période</small></div></div><div class="laveur-head-total"><span>Commission totale</span><strong>{{ report.total_commissions|floatformat:0 }} {{ entreprise.devise }}</strong></div></header>
+    <div class="responsive-table"><table><thead><tr><th>Date</th><th>Client</th><th>Véhicule</th><th>Type de lavage</th><th>Montant prestation</th><th>Montant encaissé</th><th>Commission</th><th>Statut</th></tr></thead><tbody>
+    {% for item in report.passages %}<tr><td>{{ item.date_heure_debut|date:"d/m/Y H:i" }}</td><td>{{ item.client.nom_complet }}</td><td><strong>{{ item.vehicule.immatriculation }}</strong><small>{{ item.vehicule.marque|default:"" }} {{ item.vehicule.modele|default:"" }}</small></td><td>{{ item.type_lavage.libelle }}<small>{{ item.type_lavage.get_type_vehicule_display }}</small></td><td>{{ item.montant_total|floatformat:0 }} {{ entreprise.devise }}</td><td>{{ item.montant_paye|floatformat:0 }} {{ entreprise.devise }}</td><td><strong>{{ item.commission_employe|floatformat:0 }} {{ entreprise.devise }}</strong></td><td><span class="live-status status-{{ item.statut }}">{{ item.get_statut_display }}</span></td></tr>{% endfor %}
+    </tbody><tfoot><tr><th colspan="4">Total de la période</th><th>{{ report.total_prestations|floatformat:0 }} {{ entreprise.devise }}</th><th>{{ report.total_encaisse|floatformat:0 }} {{ entreprise.devise }}</th><th>{{ report.total_commissions|floatformat:0 }} {{ entreprise.devise }}</th><th></th></tr></tfoot></table></div>
+  </article>
+  {% empty %}<div class="empty-laveur-report">Aucun lavage attribué à un laveur pour cette période.</div>{% endfor %}
+</section>
+</main></div>{{ daily_data|json_script:"dashboard-daily-data" }}{{ status_breakdown|json_script:"dashboard-status-data" }}<script src="{% static 'dashboard/dashboard.js' %}"></script><script src="{% static 'dashboard/dashboard-charts.js' %}?v=2"></script></body></html>

@@ -1,0 +1,25 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}Visiteurs et intérêt{% endblock %}
+{% block heading %}Visiteurs & intérêt{% endblock %}
+{% block content %}
+<header class="pa-page-head"><div><span>ANALYSE DU SITE PUBLIC</span><h1>Visiteurs et centres d’intérêt</h1><p>Consultations, recherches, localisations et interactions avec les entreprises.</p></div></header>
+<section class="pa-kpis visitor-kpis">
+  <article><i class="green">◎</i><small>Visiteurs uniques</small><strong>{{ stats.visitors }}</strong><span>{{ stats.visitors_today }} aujourd’hui</span></article>
+  <article><i class="blue">◉</i><small>Pages consultées</small><strong>{{ stats.page_views }}</strong><span>Site public</span></article>
+  <article><i class="orange">⌕</i><small>Recherches</small><strong>{{ stats.searches }}</strong><span>Termes saisis</span></article>
+  <article><i class="purple">⌖</i><small>GPS autorisés</small><strong>{{ stats.gps }}</strong><span>Localisations obtenues</span></article>
+  <article><i class="red">♡</i><small>Signaux d’intérêt</small><strong>{{ stats.interest }}</strong><span>Fiches, catalogues, trajets</span></article>
+</section>
+<section class="visitor-insights">
+  <article class="pa-panel"><header><div><h2>Recherches fréquentes</h2><p>Ce que recherchent les visiteurs</p></div></header><div class="insight-list">{% for item in top_searches %}<div><span>{{ item.search_query }}</span><b>{{ item.total }}</b></div>{% empty %}<p>Aucune recherche enregistrée.</p>{% endfor %}</div></article>
+  <article class="pa-panel"><header><div><h2>Entreprises les plus consultées</h2><p>Fiches, catalogues et itinéraires</p></div></header><div class="insight-list">{% for item in top_companies %}<div><span>{{ item.entreprise__raison_sociale }}</span><b>{{ item.total }}</b></div>{% empty %}<p>Aucune interaction enregistrée.</p>{% endfor %}</div></article>
+</section>
+<section class="pa-panel visitor-events">
+  <header><div><h2>Journal des visites</h2><p>{{ events.paginator.count }} événement{{ events.paginator.count|pluralize }}</p></div><form method="get"><input name="q" value="{{ query }}" placeholder="IP, visiteur, recherche, localité…"><select name="event"><option value="">Tous les événements</option>{% for value,label in event_types %}<option value="{{ value }}" {% if selected_event == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><button>Filtrer</button></form></header>
+  <div class="pa-table-wrap"><table><thead><tr><th>Date</th><th>Événement</th><th>Visiteur / IP</th><th>Appareil</th><th>Intérêt</th><th>Localisation</th></tr></thead><tbody>
+  {% for event in events %}<tr><td>{{ event.created_at|date:"d/m/Y H:i:s" }}</td><td><span class="event-badge event-{{ event.event_type }}">{{ event.get_event_type_display }}</span></td><td><strong>{{ event.visitor_id|truncatechars:18 }}</strong><small>{{ event.ip_address|default:"IP indisponible" }}</small></td><td>{{ event.device_label|default:"Appareil inconnu" }}<small>{{ event.user_agent|truncatechars:60 }}</small></td><td>{% if event.entreprise %}<strong>{{ event.entreprise.raison_sociale }}</strong>{% endif %}{% if event.search_query %}<small>Recherche : {{ event.search_query }}</small>{% endif %}{% if not event.entreprise and not event.search_query %}<span>—</span>{% endif %}</td><td>{{ event.locality|default:"—" }}{% if event.latitude %}<small>{{ event.latitude }}, {{ event.longitude }}</small>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="6" class="pa-empty">Aucun événement trouvé.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if events.paginator.num_pages > 1 %}<nav class="visitor-pagination">{% if events.has_previous %}<a href="?page={{ events.previous_page_number }}&event={{ selected_event }}&q={{ query|urlencode }}">← Précédent</a>{% endif %}<span>Page {{ events.number }} / {{ events.paginator.num_pages }}</span>{% if events.has_next %}<a href="?page={{ events.next_page_number }}&event={{ selected_event }}&q={{ query|urlencode }}">Suivant →</a>{% endif %}</nav>{% endif %}
+</section>
+{% endblock %}

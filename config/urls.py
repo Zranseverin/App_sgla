@@ -2,8 +2,10 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
+from apps.entreprises.views import public_directory
 
 urlpatterns = [
+    path("", public_directory, name="public_directory"),
     path("", include("apps.authentication.urls")),
     path("dashboard/", include("apps.dashboard.urls")),
     path("types-lavage/", include("apps.type_lavage.urls")),
@@ -13,6 +15,7 @@ urlpatterns = [
     path("employes/", include("apps.employe.urls")),
     path("caisse/", include("apps.caisse.urls")),
     path("factures/", include("apps.facture.urls")),
+    path("cleango-admin/", include("apps.platform_admin.urls")),
     path("admin/", admin.site.urls),
     path("api/core/", include("apps.core.urls")),
     path("api/entreprises/", include("apps.entreprises.urls")),

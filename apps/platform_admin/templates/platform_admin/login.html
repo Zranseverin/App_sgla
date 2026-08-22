@@ -1,0 +1,50 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Connexion administrateur | CleanGo</title>
+  <link rel="stylesheet" href="{% static 'platform_admin/admin.css' %}?v=2">
+</head>
+<body class="pa-login-page">
+  <main class="pa-login-shell">
+    <section class="pa-login-brand">
+      <a href="/">
+        <span><img src="{% static 'branding/cleango-logo.png' %}" alt="Logo CleanGo"></span>
+        <div><strong>CleanGo</strong><small>L’idée du lavage en un clic</small></div>
+      </a>
+      <div class="pa-login-message">
+        <span>ADMINISTRATION PLATEFORME</span>
+        <h1>Pilotez CleanGo depuis un espace sécurisé.</h1>
+        <p>Gérez les entreprises, leurs comptes et leurs abonnements depuis une interface indépendante.</p>
+      </div>
+    </section>
+    <section class="pa-login-form-wrap">
+      <form method="post" class="pa-login-form">
+        {% csrf_token %}
+        <header>
+          <span>ESPACE RÉSERVÉ</span>
+          <h2>Connexion administrateur</h2>
+          <p>Utilisez uniquement votre compte d’administration CleanGo.</p>
+        </header>
+        {% if messages %}{% for message in messages %}<div class="pa-alert {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+        <label for="admin-email">Adresse email</label>
+        <div class="pa-login-input"><i>✉</i><input id="admin-email" type="email" name="email" autocomplete="username" placeholder="admin@cleango.ci" required autofocus></div>
+        <label for="admin-password">Mot de passe</label>
+        <div class="pa-login-input"><i>⌁</i><input id="admin-password" type="password" name="password" autocomplete="current-password" placeholder="Votre mot de passe" required><button type="button" data-password-toggle aria-label="Afficher le mot de passe">◉</button></div>
+        <button class="pa-login-submit" type="submit">Se connecter à l’administration</button>
+        <a class="pa-back-site" href="/">← Retour au site CleanGo</a>
+      </form>
+    </section>
+  </main>
+  <script>
+    const toggle = document.querySelector("[data-password-toggle]");
+    const password = document.querySelector("#admin-password");
+    toggle.addEventListener("click", () => {
+      password.type = password.type === "password" ? "text" : "password";
+      toggle.setAttribute("aria-label", password.type === "password" ? "Afficher le mot de passe" : "Masquer le mot de passe");
+    });
+  </script>
+</body>
+</html>

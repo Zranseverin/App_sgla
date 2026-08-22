@@ -53,7 +53,8 @@ class ConfigurationMail(models.Model):
 
     @staticmethod
     def _fernet():
-        key = hashlib.sha256(settings.SECRET_KEY.encode()).digest()
+        encryption_secret = getattr(settings, "MAIL_ENCRYPTION_KEY", settings.SECRET_KEY)
+        key = hashlib.sha256(encryption_secret.encode()).digest()
         return Fernet(base64.urlsafe_b64encode(key))
 
     def set_password(self, value):

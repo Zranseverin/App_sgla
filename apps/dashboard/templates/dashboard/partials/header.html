@@ -1,7 +1,7 @@
+{% load static %}<link rel="stylesheet" href="{% static 'dashboard/modern.css' %}?v=1">
 <header class="topbar">
     <div class="breadcrumb">
         <button class="menu-toggle" data-sidebar-open type="button">☰</button>
-        <strong>Recherche & Reporting</strong><span>›</span><strong>Détails Chauffeur</strong>
     </div>
     <div class="header-account">
         <div class="header-company">
@@ -63,7 +63,11 @@
             <div class="account-panel" id="account-panel" data-account-panel hidden>
                 <div class="account-summary">
                     <span class="header-avatar">{% if user.photo %}<img src="{{ user.photo.url }}" alt="Photo de {{ user.nom }}">{% else %}{{ user_initials|default:"AD" }}{% endif %}</span>
-                    <div><strong>{{ user.nom }}</strong><small>{{ user.email }}</small></div>
+                    <div>
+                        <strong>{{ user.nom }}</strong>
+                        <small>{{ user.role.libelle }}</small>
+                        <small>{{ user.email }}</small>
+                    </div>
                 </div>
                 <nav>
                     <a href="{% url 'authentication:profile' %}"><i>♙</i><span><strong>Mon profil</strong><small>Informations personnelles</small></span></a>
@@ -74,8 +78,3 @@
         </div>
     </div>
 </header>
-<section class="searchbar">
-    <button class="select-btn">Chauffeur <span>⌄</span></button>
-    <label class="search-input"><input placeholder="Rechercher par nom, téléphone, matricule..."><span>⌕</span></label>
-    <button class="export-btn">Exporter / Imprimer <span>⌄</span></button>
-</section>

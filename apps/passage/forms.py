@@ -27,6 +27,8 @@ class PassageForm(forms.ModelForm):
             "date_heure_fin": forms.DateTimeInput(attrs={"class": "client-control", "type": "datetime-local"}, format="%Y-%m-%dT%H:%M"),
             "date_annulation": forms.DateTimeInput(attrs={"class": "client-control", "type": "datetime-local"}, format="%Y-%m-%dT%H:%M"),
             "motif_annulation": forms.Textarea(attrs={"class": "client-control passage-textarea", "rows": 3}),
+            "mode_reglement": forms.RadioSelect(attrs={"class": "payment-mode-radios"}),
+            "type_lavage": forms.RadioSelect(attrs={"class": "wash-type-radios"}),
         }
 
     def __init__(self, *args, entreprise=None, **kwargs):
@@ -36,6 +38,10 @@ class PassageForm(forms.ModelForm):
             if "class" not in field.widget.attrs:
                 field.widget.attrs["class"] = "client-control"
         self.fields["type_lavage"].queryset = TypeLavage.objects.filter(entreprise=entreprise, deleted_at__isnull=True, actif=True)
+        self.fields["type_lavage"].label_from_instance = lambda item: (
+            f"{item.libelle} · {item.get_type_vehicule_display()} · "
+            f"{item.prix_unitaire:,.0f} {entreprise.devise}"
+        )
         self.fields["employe_realisateur"].queryset = User.objects.filter(
             entreprise=entreprise,
             statut="actif",

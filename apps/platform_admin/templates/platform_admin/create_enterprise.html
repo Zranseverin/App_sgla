@@ -1,0 +1,19 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}Créer une entreprise{% endblock %}
+{% block heading %}Créer une entreprise{% endblock %}
+{% block content %}
+<header class="pa-page-head"><div><span>NOUVEAU COMPTE</span><h1>Créer une entreprise</h1><p>Créez l’entreprise, son abonnement et son premier administrateur.</p></div><a class="secondary" href="{% url 'platform_admin:dashboard' %}">← Retour</a></header>
+<form method="post" class="pa-create-form">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="pa-alert error">{{ form.non_field_errors }}</div>{% endif %}
+  <section class="pa-form-section"><header><b>1</b><div><h2>Informations de l’entreprise</h2><p>Coordonnées principales du compte client</p></div></header><div class="pa-form-grid">
+    {% for field in form %}{% if field.name == "raison_sociale" or field.name == "email_contact" or field.name == "telephone_contact" or field.name == "adresse" %}<div class="pa-field {% if field.name == 'adresse' %}wide{% endif %}"><label>{{ field.label }}{% if field.field.required %}<em>*</em>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>{% endif %}{% endfor %}
+  </div></section>
+  <section class="pa-form-section"><header><b>2</b><div><h2>Abonnement initial</h2><p>Plan et durée accordés à l’entreprise</p></div></header><div class="pa-form-grid">
+    {% for field in form %}{% if field.name == "plan" or field.name == "statut_abonnement" or field.name == "duree_mois" %}<div class="pa-field"><label>{{ field.label }}{% if field.field.required %}<em>*</em>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>{% endif %}{% endfor %}
+  </div></section>
+  <section class="pa-form-section"><header><b>3</b><div><h2>Compte administrateur</h2><p>Un mot de passe sécurisé sera généré et envoyé automatiquement par email.</p></div></header><div class="pa-form-grid">
+    {% for field in form %}{% if "admin_" in field.name %}<div class="pa-field"><label>{{ field.label }}{% if field.field.required %}<em>*</em>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>{% endif %}{% endfor %}
+  </div></section>
+  <footer class="pa-form-actions"><a href="{% url 'platform_admin:dashboard' %}">Annuler</a><button>Créer l’entreprise et le compte</button></footer>
+</form>
+{% endblock %}

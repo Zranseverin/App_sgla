@@ -1,0 +1,32 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Abonnement expiré | CleanGo</title>
+  <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+</head>
+<body style="margin:0;background:#f4f7fa;font-family:Arial,sans-serif;color:#1c324d">
+  <main style="min-height:100vh;display:grid;place-items:center;padding:24px">
+    <section style="width:min(560px,100%);background:#fff;border-radius:18px;padding:40px;box-shadow:0 14px 45px rgba(28,50,77,.12);text-align:center">
+      <div style="font-size:48px">⏳</div>
+      <h1>Votre accès a expiré</h1>
+      <p>
+        {% if entreprise.statut_abonnement == 'essai' %}
+          La période d’essai de {{ entreprise.raison_sociale }} est terminée.
+        {% else %}
+          L’abonnement de {{ entreprise.raison_sociale }} n’est plus actif.
+        {% endif %}
+      </p>
+      {% if is_admin %}
+        <p>Renouvelez l’abonnement pour rétablir immédiatement l’accès de votre équipe.</p>
+        <a href="{% url 'authentication:configuration' %}?tab=subscription" style="display:inline-block;padding:13px 20px;border-radius:10px;background:#ff7417;color:#fff;text-decoration:none;font-weight:700">Voir les offres d’abonnement</a>
+      {% else %}
+        <p>Veuillez contacter l’administrateur de votre entreprise pour renouveler l’abonnement.</p>
+      {% endif %}
+      <div style="margin-top:20px"><a href="{% url 'authentication:deconnexion' %}" style="color:#1c324d">Se déconnecter</a></div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,10 +1,11 @@
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.authentication.models import User
 
-from .forms import TypeLavageForm
+from .forms import TypeLavageBatchHeaderForm, TypeLavageForm, TypeLavageLineFormSet
 from .models import TypeLavage
 
 
@@ -52,21 +53,25 @@ def type_lavage_create(request):
     user = _connected_user(request)
     if user is None:
         return redirect("authentication:connexion")
-    form = TypeLavageForm(
-        request.POST or None,
-        entreprise=user.entreprise,
-    )
-    if request.method == "POST" and form.is_valid():
-        item = form.save(commit=False)
-        item.entreprise = user.entreprise
-        item.user = user
-        item.created_by = user
-        item.updated_by = user
-        item.save()
-        messages.success(request, "Le type de lavage a été créé.")
+    header_form = TypeLavageBatchHeaderForm(request.POST or None)
+    selected_vehicle = request.POST.get("type_vehicule", "tous")
+    formset = TypeLavageLineFormSet(request.POST or None, prefix="services", entreprise=user.entreprise, type_vehicule=selected_vehicle)
+    if request.method == "POST" and header_form.is_valid() and formset.is_valid():
+        vehicle = header_form.cleaned_data["type_vehicule"]
+        items = []
+        with transaction.atomic():
+            for line in formset.cleaned_data:
+                if not line or line.get("DELETE"):
+                    continue
+                items.append(TypeLavage.objects.create(
+                    entreprise=user.entreprise, user=user, created_by=user, updated_by=user,
+                    type_vehicule=vehicle, libelle=line["libelle"], description=line.get("description") or "",
+                    prix_unitaire=line["prix_unitaire"], duree_estimee_min=line["duree_estimee_min"], actif=line.get("actif", False),
+                ))
+        messages.success(request, f"{len(items)} prestation{'s' if len(items) > 1 else ''} créée{'s' if len(items) > 1 else ''}.")
         return redirect("type_lavage:index")
     context = _layout_context(user)
-    context.update({"form": form, "page_title": "Créer un type de lavage"})
+    context.update({"header_form": header_form, "formset": formset, "page_title": "Créer des types de lavage", "bulk_create": True})
     return render(request, "type_lavage/form.html", context)
 
 

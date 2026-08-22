@@ -1,0 +1,21 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}{% if editing %}Modifier {{ plan.nom }}{% else %}Nouveau plan{% endif %}{% endblock %}
+{% block heading %}Configuration d’un plan{% endblock %}
+{% block content %}
+<header class="pa-page-head">
+  <div><span>OFFRE D’ABONNEMENT</span><h1>{% if editing %}Modifier {{ plan.nom }}{% else %}Créer un plan{% endif %}</h1><p>Configurez le tarif, l’essai gratuit et les limites de l’offre.</p></div>
+  <a class="secondary" href="{% url 'platform_admin:plan_list' %}">← Retour aux plans</a>
+</header>
+<form method="post" class="pa-create-form pa-plan-form">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="pa-alert error">{{ form.non_field_errors }}</div>{% endif %}
+  <section class="pa-form-section">
+    <header><b>1</b><div><h2>Identification et tarif</h2><p>Informations visibles lors du choix de l’abonnement</p></div></header>
+    <div class="pa-form-grid">{% for field in form %}{% if field.name == "code" or field.name == "nom" or field.name == "description" or field.name == "prix_mensuel" or field.name == "devise" %}<div class="pa-field {% if field.name == 'description' %}wide{% endif %}"><label>{{ field.label }}{% if field.field.required %}<em>*</em>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>{% endif %}{% endfor %}</div>
+  </section>
+  <section class="pa-form-section">
+    <header><b>2</b><div><h2>Essai et limites d’utilisation</h2><p>Laissez une limite vide pour autoriser un usage illimité</p></div></header>
+    <div class="pa-form-grid">{% for field in form %}{% if field.name == "duree_essai_jours" or field.name == "max_centres" or field.name == "max_utilisateurs" or field.name == "quota_sms_mensuel" %}<div class="pa-field"><label>{{ field.label }}{% if field.field.required %}<em>*</em>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>{% endif %}{% endfor %}<div class="pa-field wide pa-check-field">{{ form.actif }}<label for="{{ form.actif.id_for_label }}">{{ form.actif.label }}</label></div></div>
+  </section>
+  <footer class="pa-form-actions"><a href="{% url 'platform_admin:plan_list' %}">Annuler</a><button>{% if editing %}Enregistrer les modifications{% else %}Créer le plan{% endif %}</button></footer>
+</form>
+{% endblock %}

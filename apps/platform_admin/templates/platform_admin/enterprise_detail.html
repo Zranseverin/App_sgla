@@ -1,0 +1,17 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}{{ company.raison_sociale }}{% endblock %}
+{% block heading %}Détails entreprise{% endblock %}
+{% block content %}
+<header class="pa-page-head"><div><span>COMPTE ENTREPRISE</span><h1>{{ company.raison_sociale }}</h1><p>{{ company.email_contact }} · {{ company.telephone_contact|default:"Téléphone non renseigné" }}</p></div><a class="secondary" href="{% url 'platform_admin:dashboard' %}">← Retour à la liste</a></header>
+<section class="pa-company-summary">
+  <article><small>Statut</small><span class="pa-status {{ company.statut_abonnement }}">{{ company.statut_abonnement|title }}</span></article>
+  <article><small>Plan actuel</small><strong>{{ company.plan.nom }}</strong></article>
+  <article><small>Début abonnement</small><strong>{{ company.date_debut_abonnement|date:"d/m/Y"|default:"—" }}</strong></article>
+  <article><small>Fin abonnement</small><strong>{{ company.date_fin_abonnement|date:"d/m/Y"|default:"—" }}</strong></article>
+  <article><small>Administrateur</small>{% for user in company_admins %}<strong>{{ user.nom }}</strong><span>{{ user.email }}</span>{% empty %}<strong>—</strong>{% endfor %}</article>
+</section>
+<div class="pa-detail-grid">
+  <section class="pa-panel pa-subscription"><header><div><h2>Activer ou prolonger</h2><p>Ajoute la durée choisie à l’abonnement actuel</p></div></header><form method="post" action="{% url 'platform_admin:activate_subscription' company.pk %}">{% csrf_token %}{% for field in activation_form %}<div class="pa-field"><label>{{ field.label }}</label>{{ field }}</div>{% endfor %}<button>Activer l’abonnement</button></form><form method="post" action="{% url 'platform_admin:suspend_subscription' company.pk %}" onsubmit="return confirm('Suspendre cet abonnement ?')">{% csrf_token %}<button class="danger">Suspendre l’abonnement</button></form></section>
+  <section class="pa-panel"><header><div><h2>Historique des abonnements</h2><p>Paiements et activations enregistrés</p></div></header><div class="pa-table-wrap"><table><thead><tr><th>Date</th><th>Plan</th><th>Montant</th><th>Statut</th></tr></thead><tbody>{% for payment in payments %}<tr><td>{{ payment.created_at|date:"d/m/Y H:i" }}</td><td>{{ payment.plan.nom }}</td><td>{{ payment.montant|floatformat:0 }} {{ payment.devise }}</td><td><span class="pa-status {{ payment.statut }}">{{ payment.get_statut_display }}</span></td></tr>{% empty %}<tr><td colspan="4" class="pa-empty">Aucun historique.</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+{% endblock %}

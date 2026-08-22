@@ -1,10 +1,11 @@
 {% load static %}
 <!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{ page_title }} | {{ entreprise.raison_sociale }}</title>{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
-<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}"><link rel="stylesheet" href="{% static 'client/client.css' %}"><link rel="stylesheet" href="{% static 'passage/passage.css' %}">
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}?v=2"><link rel="stylesheet" href="{% static 'client/client.css' %}"><link rel="stylesheet" href="{% static 'passage/passage.css' %}?v=9"><link rel="stylesheet" href="{% static 'passage/form-redesign.css' %}?v=1">
 </head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">{% include "dashboard/partials/sidebar.html" %}
-<div class="page">{% include "dashboard/partials/header.html" %}<main class="client-page"><div class="client-back"><a href="{% url 'passage:index' %}">← Retour aux passages</a></div>
-<section class="client-form-card passage-form-card"><div class="client-form-head"><span>FICHE DE PASSAGE</span><h1>{{ page_title }}</h1><p>Renseignez le lavage, les intervenants et la répartition financière.</p></div>
+<div class="page">{% include "dashboard/partials/header.html" %}<main class="passage-form-page">
+<header class="passage-form-page-head"><div><p><a href="{% url 'passage:index' %}">Passages</a><b>›</b> {{ page_title }}</p><h1>{{ page_title }}</h1><small>Renseignez le client, le véhicule, la prestation et le règlement.</small></div><a href="{% url 'passage:index' %}">← Retour à la liste</a></header>
+<section class="client-form-card passage-form-card"><div class="client-form-head"><span>FICHE DE PASSAGE</span><h2>Informations du lavage</h2><p>Les montants et la commission sont calculés automatiquement.</p><div class="passage-form-steps"><span><b>1</b> Client</span><span><b>2</b> Véhicule</span><span><b>3</b> Prestation</span><span><b>4</b> Règlement</span><span><b>5</b> État</span></div></div>
 <form method="post" id="passage-form">{% csrf_token %}
 {% if form.errors %}<div class="passage-form-errors" role="alert" aria-live="assertive">
   <strong>Le passage n’a pas été enregistré. Corrigez les éléments suivants :</strong>
@@ -21,7 +22,7 @@
   </div>
   <input type="hidden" name="client_mode" id="client-mode" value="{{ request.POST.client_mode|default:'existing' }}">
   <div id="client-existing">
-    <div class="client-field"><label>Rechercher un client</label><select name="client" id="id_client" class="client-control">
+    <div class="client-field"><label>Rechercher un client <span class="required-star">*</span></label><select name="client" id="id_client" class="client-control">
       <option value="">— Sélectionner un client —</option>
       {% for client in clients %}<option value="{{ client.pk }}" data-code="{{ client.code }}" data-phone="{{ client.telephone }}" data-address="{{ client.adresse }}">{{ client.code }} · {{ client.nom_complet }} · {{ client.telephone }}</option>{% endfor %}
     </select></div>
@@ -29,10 +30,10 @@
   </div>
   <div id="client-new" class="new-entry-block" hidden>
     <div class="client-form-grid">
-      <div class="client-field"><label>Nom complet *</label><input class="client-control" name="new_client_nom_complet" value="{{ request.POST.new_client_nom_complet }}" placeholder="Ex. Konan Aya"></div>
-      <div class="client-field"><label>Téléphone *</label><input class="client-control" name="new_client_telephone" value="{{ request.POST.new_client_telephone }}" placeholder="+225 07 00 00 00 00"></div>
-      <div class="client-field"><label>Email</label><input type="email" class="client-control" name="new_client_email" value="{{ request.POST.new_client_email }}" placeholder="client@example.com"></div>
-      <div class="client-field"><label>Adresse *</label><input class="client-control" name="new_client_adresse" value="{{ request.POST.new_client_adresse }}" placeholder="Quartier, ville"></div>
+      <div class="client-field"><label>Nom complet <span class="required-star">*</span></label><input class="client-control" name="new_client_nom_complet" value="{{ request.POST.new_client_nom_complet }}" placeholder="Ex. Konan Aya"></div>
+      <div class="client-field"><label>Téléphone <span class="required-star">*</span></label><input class="client-control" name="new_client_telephone" value="{{ request.POST.new_client_telephone }}" placeholder="+225 07 00 00 00 00"></div>
+      <div class="client-field"><label>Email <small>(facultatif)</small></label><input type="email" class="client-control" name="new_client_email" value="{{ request.POST.new_client_email }}" placeholder="Laisser vide si non renseigné"></div>
+      <div class="client-field"><label>Adresse <span class="required-star">*</span></label><input class="client-control" name="new_client_adresse" value="{{ request.POST.new_client_adresse }}" placeholder="Quartier, ville"></div>
     </div>
   </div>
 </section>
@@ -43,10 +44,10 @@
     <button type="button" data-mode="new">＋ Nouveau véhicule</button>
   </div>
   <input type="hidden" name="vehicule_mode" id="vehicle-mode" value="{{ request.POST.vehicule_mode|default:'existing' }}">
-  <div id="vehicle-existing"><div class="client-field"><label>Véhicule du client</label><select name="vehicule" id="id_vehicule" class="client-control"><option value="">— Sélectionnez d’abord un client —</option></select></div><div class="selection-recap" id="vehicle-recap"></div></div>
+  <div id="vehicle-existing"><div class="client-field"><label>Véhicule du client <span class="required-star">*</span></label><select name="vehicule" id="id_vehicule" class="client-control"><option value="">— Sélectionnez d’abord un client —</option></select></div><div class="selection-recap" id="vehicle-recap"></div></div>
   <div id="vehicle-new" class="new-entry-block" hidden>
     <div class="client-form-grid">
-      <div class="client-field"><label>Immatriculation *</label><input class="client-control" name="new_vehicle_immatriculation" value="{{ request.POST.new_vehicle_immatriculation }}" placeholder="Ex. CI-024-ABC"></div>
+      <div class="client-field"><label>Immatriculation <span class="required-star">*</span></label><input class="client-control" name="new_vehicle_immatriculation" value="{{ request.POST.new_vehicle_immatriculation }}" placeholder="Ex. CI-024-ABC"></div>
       <div class="client-field"><label>Type</label><select class="client-control" name="new_vehicle_type_vehicule"><option value="CITADINE">Citadine</option><option value="BERLINE">Berline</option><option value="SUV">SUV</option><option value="UTILITAIRE">Utilitaire</option><option value="MOTO">Moto</option><option value="AUTRE">Autre</option></select></div>
       <div class="client-field"><label>Marque</label><input class="client-control" name="new_vehicle_marque" value="{{ request.POST.new_vehicle_marque }}" placeholder="Toyota, Honda..."></div>
       <div class="client-field"><label>Modèle</label><input class="client-control" name="new_vehicle_modele" value="{{ request.POST.new_vehicle_modele }}" placeholder="Corolla, Civic..."></div>
@@ -57,25 +58,25 @@
 <section class="passage-entry-section">
   <div class="passage-section-title"><span>3</span> Prestation & piste</div>
   <div class="passage-grid-3">
-    <div class="client-field"><label>Date et heure de début *</label>{{ form.date_heure_debut }}{% for error in form.date_heure_debut.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Date et heure de début <span class="required-star">*</span></label>{{ form.date_heure_debut }}{% for error in form.date_heure_debut.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
     <div class="client-field"><label>Date et heure de fin</label>{{ form.date_heure_fin }}{% for error in form.date_heure_fin.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
-    <div class="client-field"><label>Type de lavage *</label>{{ form.type_lavage }}{% for error in form.type_lavage.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field passage-wide"><label>Type de lavage <span class="required-star">*</span></label>{{ form.type_lavage }}{% for error in form.type_lavage.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
     <div class="client-field"><label>Montant prestation</label><input id="wash-price-display" class="client-control amount-highlight" readonly></div>
     <div class="client-field"><label>Piste (facultatif)</label>{{ form.piste_id }}{% for error in form.piste_id.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
-    <div class="client-field"><label>Employé réalisateur *</label>{{ form.employe_realisateur }}{% for error in form.employe_realisateur.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Employé réalisateur <span class="required-star">*</span></label>{{ form.employe_realisateur }}{% for error in form.employe_realisateur.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
   </div>
 </section>
 <section class="passage-entry-section">
   <div class="passage-section-title"><span>4</span> Règlement</div>
   <div class="passage-grid-3">
-    <div class="client-field"><label>Mode de règlement *</label>{{ form.mode_reglement }}{% for error in form.mode_reglement.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
-    <div class="client-field"><label>Statut du règlement *</label>{{ form.statut_reglement }}{% for error in form.statut_reglement.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field passage-wide"><label>Mode de règlement <span class="required-star">*</span></label>{{ form.mode_reglement }}{% for error in form.mode_reglement.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Statut du règlement <span class="required-star">*</span></label>{{ form.statut_reglement }}{% for error in form.statut_reglement.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
     <div class="client-field"><label>Montant payé</label>{{ form.montant_paye }}{% for error in form.montant_paye.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
   </div>
   <div id="partial-payment-block" class="partial-payment-block" hidden>
     <strong>Paiement partiel</strong>
     <div class="client-form-grid">
-      <div class="client-field"><label>Montant versé</label>{{ form.montant_partiel_verse }}{% for error in form.montant_partiel_verse.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+      <div class="client-field"><label>Montant versé <span class="required-star">*</span></label>{{ form.montant_partiel_verse }}{% for error in form.montant_partiel_verse.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
       <div class="client-field"><label>Montant restant</label>{{ form.montant_restant }}{% for error in form.montant_restant.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
     </div>
   </div>
@@ -92,12 +93,12 @@
 <section class="passage-entry-section">
   <div class="passage-section-title"><span>5</span> État du passage</div>
   <div class="client-form-grid">
-    <div class="client-field"><label>Statut du passage</label>{{ form.statut }}{% for error in form.statut.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
+    <div class="client-field"><label>Statut du passage <span class="required-star">*</span></label>{{ form.statut }}{% for error in form.statut.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
     <div class="client-field"><label>Date d’annulation</label>{{ form.date_annulation }}{% for error in form.date_annulation.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
     <div class="client-field passage-wide"><label>Motif d’annulation</label>{{ form.motif_annulation }}{% for error in form.motif_annulation.errors %}<div class="client-error">{{ error }}</div>{% endfor %}</div>
   </div>
 </section>
-<div class="client-form-actions"><a href="{% url 'passage:index' %}">Annuler</a><button>Enregistrer le passage</button></div></form></section>
+<div class="client-form-actions"><a href="{% url 'passage:index' %}">Annuler</a><button>{% if passage %}Mettre à jour le passage{% else %}Enregistrer le passage{% endif %}</button></div></form></section>
 </main></div><script src="{% static 'dashboard/dashboard.js' %}"></script>
 {{ wash_prices|json_script:"wash-prices-data" }}
 <script>
@@ -207,7 +208,7 @@
         });
 
     const prices = JSON.parse(document.getElementById('wash-prices-data').textContent);
-    const washType = document.getElementById('id_type_lavage');
+    const washTypeInputs = [...document.querySelectorAll('input[name="type_lavage"]')];
     const paymentStatus = document.getElementById('id_statut_reglement');
     const paidInput = document.getElementById('id_montant_paye');
     const partialInput = document.getElementById('id_montant_partiel_verse');
@@ -219,7 +220,8 @@
     const money = value => Math.round(value || 0).toLocaleString('fr-FR') + ' {{ entreprise.devise }}';
 
     function updatePayment(source) {
-        const total = Number(prices[washType.value] || 0);
+        const selectedWashType = washTypeInputs.find(input => input.checked);
+        const total = Number(prices[selectedWashType?.value] || 0);
         let paid = Number(paidInput.value || 0);
         if (paymentStatus.value === 'paye') {
             paid = total;
@@ -259,7 +261,7 @@
         document.getElementById('commission-display').textContent = money(commission);
         document.getElementById('net-display').textContent = money(net);
     }
-    washType.addEventListener('change', () => updatePayment());
+    washTypeInputs.forEach(input => input.addEventListener('change', () => updatePayment()));
     paymentStatus.addEventListener('change', function () {
         if (this.value === 'partiel') {
             paidInput.value = '';

@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from cryptography.fernet import InvalidToken
 from .models import User
 from apps.plan.models import Plan
 from apps.entreprises.models import Entreprise
@@ -140,8 +141,16 @@ class RegisterForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
+        self.google_identity = kwargs.pop('google_identity', None)
         super().__init__(*args, **kwargs)
         self.fields['plan'].queryset = Plan.objects.filter(actif=True).order_by('prix_mensuel')
+        if self.google_identity:
+            self.fields['nom'].initial = self.google_identity.get('name', '')
+            self.fields['email'].initial = self.google_identity.get('email', '')
+            self.fields['nom'].widget.attrs['readonly'] = True
+            self.fields['email'].widget.attrs['readonly'] = True
+            self.fields['password'].required = False
+            self.fields['confirm_password'].required = False
 
     def clean_couleur_principale(self):
         couleur = self.cleaned_data.get('couleur_principale', '')
@@ -156,6 +165,8 @@ class RegisterForm(forms.Form):
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
+        if self.google_identity and email.lower() != self.google_identity.get('email', '').lower():
+            raise ValidationError('L’adresse email doit correspondre au compte Google vérifié.')
         if User.objects.filter(email__iexact=email).exists():
             raise ValidationError('Cet email est déjà utilisé.')
         return email
@@ -356,6 +367,10 @@ class EnterpriseProfileForm(forms.ModelForm):
             'couleur_principale',
             'email_contact',
             'telephone_contact',
+            'adresse',
+            'commune',
+            'latitude',
+            'longitude',
             'devise',
             'langue',
             'fuseau_horaire',
@@ -368,6 +383,10 @@ class EnterpriseProfileForm(forms.ModelForm):
             'couleur_principale': forms.TextInput(attrs={'class': 'form-control color-control', 'type': 'color'}),
             'email_contact': forms.EmailInput(attrs={'class': 'form-control'}),
             'telephone_contact': forms.TextInput(attrs={'class': 'form-control'}),
+            'adresse': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Quartier, rue, repère'}),
+            'commune': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex. Cocody'}),
+            'latitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001', 'placeholder': 'Ex. 5.359952'}),
+            'longitude': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001', 'placeholder': 'Ex. -4.008256'}),
             'devise': forms.Select(
                 choices=[('XOF', 'Franc CFA (XOF)'), ('EUR', 'Euro (EUR)'), ('USD', 'Dollar US (USD)')],
                 attrs={'class': 'form-control'},
@@ -512,4 +531,12 @@ class MailConfigurationForm(forms.ModelForm):
             raise ValidationError('Choisissez TLS ou SSL, pas les deux simultanément.')
         if not self.instance.pk and not cleaned.get('mot_de_passe'):
             self.add_error('mot_de_passe', 'Le mot de passe est requis.')
+        elif self.instance.pk and not cleaned.get('mot_de_passe'):
+            try:
+                self.instance.get_password()
+            except InvalidToken:
+                self.add_error(
+                    'mot_de_passe',
+                    'Le mot de passe enregistré ne peut plus être lu. Ressaisissez le mot de passe SMTP.',
+                )
         return cleaned

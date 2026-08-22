@@ -1,0 +1,22 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}Tableau de bord{% endblock %}
+{% block heading %}Tableau de bord{% endblock %}
+{% block content %}
+<header class="pa-page-head"><div><span>SUPERVISION</span><h1>Administration CleanGo</h1><p>Suivez les entreprises et gérez leurs abonnements.</p></div><a href="{% url 'platform_admin:create_enterprise' %}">＋ Nouvelle entreprise</a></header>
+<section class="pa-kpis">
+  <article><i class="green">▦</i><small>Entreprises</small><strong>{{ stats.total }}</strong><span>Total inscrites</span></article>
+  <article><i class="blue">✓</i><small>Abonnements actifs</small><strong>{{ stats.active }}</strong><span>{{ stats.expiring }} expire bientôt</span></article>
+  <article><i class="orange">◷</i><small>Essais gratuits</small><strong>{{ stats.trial }}</strong><span>À convertir</span></article>
+  <article><i class="red">×</i><small>Suspendus</small><strong>{{ stats.suspended }}</strong><span>Accès bloqué</span></article>
+  <article><i class="purple">₣</i><small>Revenus abonnements</small><strong>{{ stats.revenue|floatformat:0 }}</strong><span>FCFA encaissés</span></article>
+</section>
+<section class="pa-panel">
+  <header><div><h2>Entreprises et abonnements</h2><p>Liste complète des comptes clients CleanGo</p></div>
+    <form method="get"><input name="q" value="{{ query }}" placeholder="Entreprise, email, téléphone…"><select name="statut"><option value="">Tous les statuts</option><option value="actif" {% if selected_status == "actif" %}selected{% endif %}>Actifs</option><option value="essai" {% if selected_status == "essai" %}selected{% endif %}>Essais</option><option value="suspendu" {% if selected_status == "suspendu" %}selected{% endif %}>Suspendus</option></select><button>Rechercher</button></form>
+  </header>
+  <div class="pa-table-wrap"><table><thead><tr><th>Entreprise</th><th>Plan</th><th>Statut</th><th>Période</th><th>Contact</th><th></th></tr></thead><tbody>
+  {% for company in companies %}<tr><td><strong>{{ company.raison_sociale }}</strong><small>Créée le {{ company.created_at|date:"d/m/Y" }}</small></td><td>{{ company.plan.nom }}<small>{{ company.plan.prix_mensuel|floatformat:0 }} {{ company.plan.devise }}/mois</small></td><td><span class="pa-status {{ company.statut_abonnement }}">{{ company.statut_abonnement|title }}</span></td><td>{% if company.statut_abonnement == "actif" %}{{ company.date_debut_abonnement|date:"d/m/Y" }} → {{ company.date_fin_abonnement|date:"d/m/Y" }}{% else %}{{ company.date_fin_essai|date:"d/m/Y"|default:"—" }}{% endif %}</td><td>{{ company.email_contact }}<small>{{ company.telephone_contact|default:"—" }}</small></td><td><a class="pa-row-action" href="{% url 'platform_admin:enterprise_detail' company.pk %}">Gérer →</a></td></tr>
+  {% empty %}<tr><td colspan="6" class="pa-empty">Aucune entreprise trouvée.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

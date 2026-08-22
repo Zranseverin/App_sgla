@@ -1,31 +1,146 @@
 {% load static %}
 <!doctype html>
-<html lang="fr"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{ page_title }} | {{ entreprise.raison_sociale }}</title>
-{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
-<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
-<link rel="stylesheet" href="{% static 'type_lavage/type_lavage.css' %}">
-</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ page_title }} | {{ entreprise.raison_sociale }}</title>
+  {% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+  <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'type_lavage/type_lavage.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'type_lavage/batch-create.css' %}?v=1">
+</head>
+<body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
 {% include "dashboard/partials/sidebar.html" %}
-<div class="page">{% include "dashboard/partials/header.html" %}
-<main class="wash-page">
-  <div class="wash-form-navigation"><a href="{% url 'type_lavage:index' %}">← Retour aux types de lavage</a></div>
-  <section class="wash-form-card">
-    <div class="wash-form-head"><span>CATALOGUE</span><h1>{{ page_title }}</h1><p>Renseignez les caractéristiques et le tarif de la prestation.</p></div>
-    <form method="post">{% csrf_token %}
-      {% for error in form.non_field_errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}
-      <div class="wash-form-grid">
-      {% for field in form %}
-        <div class="wash-field {% if field.name == 'description' %}wide{% endif %} {% if field.name == 'actif' %}wash-field-checkbox{% endif %}">
-          <label>{{ field.label }}</label>{{ field }}
-          {% for error in field.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}
-        </div>
-      {% endfor %}
+<div class="page">
+  {% include "dashboard/partials/header.html" %}
+  <main class="wash-page wash-create-page">
+    <nav class="wash-breadcrumb" aria-label="Fil d’Ariane">
+      <a href="{% url 'dashboard:index' %}">Tableau de bord</a><span>›</span>
+      <a href="{% url 'type_lavage:index' %}">Types de lavage</a><span>›</span>
+      <strong>{{ page_title }}</strong>
+    </nav>
+
+    <header class="wash-create-header">
+      <div class="wash-create-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 15.5h10M8.5 18.5h7M6.5 12.5h11l-1.2-4.2A2 2 0 0 0 14.4 7H9.6a2 2 0 0 0-1.9 1.3L6.5 12.5Z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12.5h14v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4ZM7 15h.01M17 15h.01M18.5 4.5l.5-1m1.5 3 .9-.4M5.5 4.5 5 3.5m-1.5 3-.9-.4"/>
+        </svg>
       </div>
-      <div class="wash-form-actions"><a href="{% url 'type_lavage:index' %}">Annuler</a><button type="submit">Enregistrer</button></div>
+      <div>
+        <h1>{{ page_title }}</h1>
+        <p>Renseignez les informations et le tarif du service proposé.</p>
+      </div>
+      <a class="wash-back-button" href="{% url 'type_lavage:index' %}">
+        <span>←</span> Retour à la liste
+      </a>
+    </header>
+
+    <form class="wash-create-form" method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="wash-global-error">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+
+      {% if bulk_create %}
+      <section class="wash-form-section">
+        <header><span class="wash-section-marker wash-section-marker--blue"></span><div><h2>Type de véhicule</h2><p>Ce véhicule partagera toutes les prestations ajoutées ci-dessous.</p></div></header>
+        <div class="wash-section-content"><div class="wash-field"><label for="{{ header_form.type_vehicule.id_for_label }}">Type de véhicule <b>*</b></label>{{ header_form.type_vehicule }}{% for error in header_form.type_vehicule.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}</div></div>
+      </section>
+      <section class="wash-form-section wash-batch-section">
+        <header><span class="wash-section-marker wash-section-marker--green"></span><div><h2>Prestations et tarifs</h2><p>Ajoutez un ou plusieurs libellés avec leur prix et leur durée.</p></div><button class="wash-add-line" id="add-service-line" type="button">＋ Ajouter une ligne</button></header>
+        <div class="wash-section-content">
+          {{ formset.management_form }}
+          {% for error in formset.non_form_errors %}<div class="wash-global-error"><p>{{ error }}</p></div>{% endfor %}
+          <div class="wash-batch-labels"><span>Libellé *</span><span>Prix ({{ entreprise.devise }}) *</span><span>Durée (min) *</span><span>Description</span><span>Actif</span><span></span></div>
+          <div id="service-lines">
+            {% for line in formset %}
+            <div class="wash-service-line">
+              {{ line.id }}
+              <div>{{ line.libelle }}{% for error in line.libelle.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}</div>
+              <div>{{ line.prix_unitaire }}{% for error in line.prix_unitaire.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}</div>
+              <div>{{ line.duree_estimee_min }}{% for error in line.duree_estimee_min.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}</div>
+              <div>{{ line.description }}{% for error in line.description.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}</div>
+              <label class="wash-line-active">{{ line.actif }}<span>Actif</span></label>
+              <div class="wash-line-delete">{{ line.DELETE }}<button type="button" data-remove-line aria-label="Supprimer la ligne">×</button></div>
+            </div>
+            {% endfor %}
+          </div>
+          <template id="empty-service-line"><div class="wash-service-line"><div>{{ formset.empty_form.libelle }}</div><div>{{ formset.empty_form.prix_unitaire }}</div><div>{{ formset.empty_form.duree_estimee_min }}</div><div>{{ formset.empty_form.description }}</div><label class="wash-line-active">{{ formset.empty_form.actif }}<span>Actif</span></label><div class="wash-line-delete">{{ formset.empty_form.DELETE }}<button type="button" data-remove-line aria-label="Supprimer la ligne">×</button></div></div></template>
+        </div>
+      </section>
+      {% else %}
+
+      <section class="wash-form-section">
+        <header>
+          <span class="wash-section-marker wash-section-marker--blue"></span>
+          <div><h2>Informations de la prestation</h2><p>Identifiez le lavage et les véhicules concernés.</p></div>
+        </header>
+        <div class="wash-section-content wash-form-grid">
+          <div class="wash-field">
+            <label for="{{ form.libelle.id_for_label }}">Nom du type de lavage <b>*</b></label>
+            {{ form.libelle }}
+            <small>Exemple : Lavage complet, Lavage extérieur</small>
+            {% for error in form.libelle.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="wash-field">
+            <label for="{{ form.type_vehicule.id_for_label }}">Type de véhicule</label>
+            {{ form.type_vehicule }}
+            <small>Le tarif sera proposé uniquement pour ce véhicule.</small>
+            {% for error in form.type_vehicule.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="wash-field wide">
+            <label for="{{ form.description.id_for_label }}">Description</label>
+            {{ form.description }}
+            <small>Décrivez brièvement les opérations incluses dans cette prestation.</small>
+            {% for error in form.description.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <section class="wash-form-section">
+        <header>
+          <span class="wash-section-marker wash-section-marker--green"></span>
+          <div><h2>Tarification et disponibilité</h2><p>Définissez le prix, la durée et le statut du service.</p></div>
+        </header>
+        <div class="wash-section-content wash-form-grid">
+          <div class="wash-field">
+            <label for="{{ form.prix_unitaire.id_for_label }}">Prix unitaire <b>*</b></label>
+            <div class="wash-input-suffix">{{ form.prix_unitaire }}<span>{{ entreprise.devise|default:"FCFA" }}</span></div>
+            {% for error in form.prix_unitaire.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="wash-field">
+            <label for="{{ form.duree_estimee_min.id_for_label }}">Durée estimée <b>*</b></label>
+            <div class="wash-input-suffix">{{ form.duree_estimee_min }}<span>minutes</span></div>
+            {% for error in form.duree_estimee_min.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="wash-field wide">
+            <label class="wash-active-option" for="{{ form.actif.id_for_label }}">
+              {{ form.actif }}
+              <span class="wash-active-switch" aria-hidden="true"></span>
+              <span><strong>Service actif</strong><small>Ce type de lavage peut être sélectionné lors de la création d’un passage.</small></span>
+            </label>
+            {% for error in form.actif.errors %}<div class="wash-form-error">{{ error }}</div>{% endfor %}
+          </div>
+        </div>
+      </section>
+
+      {% endif %}
+
+      <footer class="wash-create-actions">
+        <a href="{% url 'type_lavage:index' %}">Annuler</a>
+        <button type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12l4 4L19 6"/></svg>
+          {% if item %}Enregistrer les modifications{% else %}Enregistrer les prestations{% endif %}
+        </button>
+      </footer>
     </form>
-  </section>
-</main></div>
+  </main>
+</div>
 <script src="{% static 'dashboard/dashboard.js' %}"></script>
-</body></html>
+{% if bulk_create %}<script src="{% static 'type_lavage/batch-create.js' %}?v=1"></script>{% endif %}
+</body>
+</html>

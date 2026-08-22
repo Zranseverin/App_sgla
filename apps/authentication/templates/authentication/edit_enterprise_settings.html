@@ -1,10 +1,11 @@
 {% load static %}
 <!doctype html><html lang="fr"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Modifier l’entreprise | SGLA</title>
+<title>Modifier l’entreprise | CleanGo</title>
 {% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
 <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'authentication/profile.css' %}">
+<link rel="stylesheet" href="{% static 'authentication/enterprise-location.css' %}">
 </head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
 {% include "dashboard/partials/sidebar.html" %}
 <div class="page">{% include "dashboard/partials/header.html" %}
@@ -15,6 +16,11 @@
 <form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
 {% for error in form.non_field_errors %}<div class="form-error">{{ error }}</div>{% endfor %}
 <h2 class="form-section-title">Informations générales</h2>
+<section class="enterprise-location-tool">
+    <div><strong>Position de l’entreprise</strong><p>Placez-vous dans l’entreprise, puis autorisez le navigateur à accéder au GPS.</p></div>
+    <button type="button" id="enterprise-gps-button">⌖ Récupérer ma position GPS</button>
+    <div id="enterprise-gps-status" class="enterprise-gps-status" aria-live="polite" hidden></div>
+</section>
 <div class="enterprise-form-grid">
 {% for field in form %}
     <div class="form-field {% if field.name == 'logo_url' or field.name == 'favicon_url' or field.name == 'slogan' %}field-wide{% endif %}">
@@ -27,4 +33,4 @@
 </div>
 <div class="form-actions"><a href="{% url 'authentication:enterprise_settings' %}">Annuler</a><button type="submit">✓ Enregistrer l’entreprise</button></div>
 </form></section>
-</main></div><script src="{% static 'dashboard/dashboard.js' %}"></script></body></html>
+</main></div><script src="{% static 'dashboard/dashboard.js' %}"></script><script src="{% static 'authentication/enterprise-location.js' %}"></script></body></html>

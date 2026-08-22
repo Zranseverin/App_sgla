@@ -124,24 +124,48 @@ def passage_list(request):
     user = _connected_user(request)
     if user is None:
         return redirect("authentication:connexion")
-    passages = Passage.objects.filter(
+    base_passages = Passage.objects.filter(
         entreprise=user.entreprise,
         deleted_at__isnull=True,
     ).select_related("client", "vehicule", "type_lavage", "employe_realisateur")
+    passages = base_passages
     query = request.GET.get("q", "").strip()
+    selected_status = request.GET.get("statut", "").strip()
+    selected_payment = request.GET.get("reglement", "").strip()
     if query:
         passages = passages.filter(
             Q(client__nom_complet__icontains=query)
             | Q(vehicule__immatriculation__icontains=query)
             | Q(type_lavage__libelle__icontains=query)
         )
+    if selected_status in dict(Passage.STATUTS):
+        passages = passages.filter(statut=selected_status)
+    if selected_payment in dict(Passage.STATUTS_REGLEMENT):
+        passages = passages.filter(statut_reglement=selected_payment)
     total_amount = passages.aggregate(total=Sum("montant_total"))["total"] or 0
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    month_passages = base_passages.filter(date_heure_debut__date__gte=month_start)
     context = _layout_context(user)
     context.update({
         "passages": passages,
         "total": passages.count(),
         "total_amount": total_amount,
         "query": query,
+        "selected_status": selected_status,
+        "selected_payment": selected_payment,
+        "status_choices": Passage.STATUTS,
+        "payment_choices": Passage.STATUTS_REGLEMENT,
+        "passage_stats": {
+            "today": base_passages.filter(date_heure_debut__date=today).count(),
+            "month": month_passages.count(),
+            "waiting": month_passages.filter(statut="en_attente").count(),
+            "in_progress": month_passages.filter(statut="en_cours").count(),
+            "completed": month_passages.filter(statut="termine").count(),
+            "revenue": month_passages.exclude(statut="annule").aggregate(
+                total=Sum("montant_paye")
+            )["total"] or 0,
+        },
     })
     return render(request, "passage/index.html", context)
 

@@ -1,7 +1,7 @@
 {% load static %}
 <!doctype html><html lang="fr"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Configuration | SGLA</title>
+<title>Configuration | CleanGo</title>
 {% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
 <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'authentication/profile.css' %}">
@@ -112,12 +112,17 @@
     <article class="config-card subscription-status {% if not subscription_active %}expired{% endif %}">
         <div>
             <span class="subscription-label">ÉTAT DE L’ABONNEMENT</span>
-            <h2>{% if trial_expired %}Votre essai gratuit est terminé{% elif entreprise.statut_abonnement == 'actif' %}Abonnement actif{% else %}Essai gratuit en cours{% endif %}</h2>
+            <h2>{% if trial_expired %}Votre essai gratuit est terminé{% elif paid_subscription_expired %}Votre abonnement est arrivé à expiration{% elif entreprise.statut_abonnement == 'actif' %}Abonnement actif{% else %}Essai gratuit en cours{% endif %}</h2>
             <p>
-                {% if trial_expired %}
+                {% if trial_expired or paid_subscription_expired %}
                     Choisissez un plan et procédez au paiement pour continuer à utiliser la plateforme.
                 {% elif entreprise.statut_abonnement == 'actif' %}
                     Votre entreprise utilise actuellement le plan {{ plan.nom }}.
+                    {% if entreprise.date_fin_abonnement %}
+                        L’abonnement se termine le <strong>{{ entreprise.date_fin_abonnement|date:"d/m/Y" }}</strong> — {{ stats.jours_restants }} jour{{ stats.jours_restants|pluralize }} restant{{ stats.jours_restants|pluralize }}.
+                    {% else %}
+                        La date de fin d’abonnement n’a pas encore été définie.
+                    {% endif %}
                 {% else %}
                     Votre essai se termine le {{ entreprise.date_fin_essai|date:"d/m/Y" }} — {{ stats.jours_restants }} jour{{ stats.jours_restants|pluralize }} restant{{ stats.jours_restants|pluralize }}.
                 {% endif %}
@@ -191,7 +196,7 @@
                 <label>Nom sur la carte</label><input type="text" autocomplete="cc-name" data-card-field placeholder="NOM ET PRÉNOMS">
                 <label>Numéro de carte</label><input type="text" inputmode="numeric" autocomplete="cc-number" maxlength="19" data-card-field placeholder="0000 0000 0000 0000">
                 <div class="card-field-row"><div><label>Date d’expiration</label><input type="text" inputmode="numeric" autocomplete="cc-exp" maxlength="5" data-card-field placeholder="MM/AA"></div><div><label>CVV</label><input type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" data-card-field placeholder="•••"></div></div>
-                <p class="card-security">Ces informations ne sont pas enregistrées par SGLA. Elles seront transmises directement à la passerelle bancaire certifiée.</p>
+                <p class="card-security">Ces informations ne sont pas enregistrées par CleanGo. Elles seront transmises directement à la passerelle bancaire certifiée.</p>
             </div>
             <div class="other-payment-fields" id="other-payment-fields" hidden><p>Un conseiller vous contactera pour organiser le règlement par virement ou un autre moyen.</p></div>
             <button class="payment-button" type="submit">Confirmer le paiement</button>

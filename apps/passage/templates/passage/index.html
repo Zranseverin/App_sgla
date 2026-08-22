@@ -1,14 +1,82 @@
 {% load static %}
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Passages | {{ entreprise.raison_sociale }}</title>{% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
-<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}"><link rel="stylesheet" href="{% static 'client/client.css' %}"><link rel="stylesheet" href="{% static 'passage/passage.css' %}">
-</head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">{% include "dashboard/partials/sidebar.html" %}
-<div class="page">{% include "dashboard/partials/header.html" %}<main class="client-page">
-{% if messages %}{% for message in messages %}<div class="client-alert">{{ message }}</div>{% endfor %}{% endif %}
-<div class="client-head"><div><span>EXPLOITATION</span><h1>Passages</h1><p>Suivez les lavages, règlements et commissions.</p></div><a href="{% url 'passage:create' %}">＋ Nouveau passage</a></div>
-<div class="passage-stats"><article><small>Passages affichés</small><strong>{{ total }}</strong></article><article><small>Montant total</small><strong>{{ total_amount|floatformat:0 }} {{ entreprise.devise }}</strong></article></div>
-<div class="client-toolbar"><form><input name="q" value="{{ query }}" placeholder="Client, immatriculation ou type de lavage..."><button>Rechercher</button></form></div>
-<section class="client-card"><div class="client-table-wrap"><table class="client-table"><thead><tr><th>Date</th><th>Client / Véhicule</th><th>Lavage / Piste</th><th>Montant</th><th>Règlement</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
-{% for item in passages %}<tr><td>{{ item.date_heure_debut|date:"d/m/Y H:i" }}</td><td><strong>{{ item.client.nom_complet }}</strong><small>{{ item.vehicule.immatriculation }}</small></td><td><strong>{{ item.type_lavage.libelle }}</strong><small>{% if item.piste_id %}Piste #{{ item.piste_id }}{% else %}Sans piste{% endif %}</small></td><td><strong>{{ item.montant_total|floatformat:0 }} {{ entreprise.devise }}</strong><small>Reste : {{ item.montant_restant|floatformat:0 }}</small></td><td><span class="passage-payment payment-{{ item.statut_reglement }}">{{ item.get_statut_reglement_display }}</span><small>{{ item.get_mode_reglement_display }}</small></td><td><span class="passage-status status-{{ item.statut }}">{{ item.get_statut_display }}</span></td><td><div class="client-actions passage-actions"><a href="{% url 'passage:update' item.pk %}">Modifier</a>{% if item.statut == 'en_attente' or item.statut == 'en_cours' %}<form class="quick-status-form" method="post" action="{% url 'passage:change_status' item.pk %}">{% csrf_token %}<button type="submit">{% if item.statut == 'en_attente' %}Passer en cours{% else %}Terminer{% endif %}</button></form>{% endif %}<form method="post" action="{% url 'passage:delete' item.pk %}" onsubmit="return confirm('Supprimer ce passage ?')">{% csrf_token %}<button>Supprimer</button></form></div></td></tr>
-{% empty %}<tr><td colspan="7" class="client-empty"><strong>Aucun passage trouvé</strong><span>Enregistrez le premier lavage.</span></td></tr>{% endfor %}
-</tbody></table></div></section></main></div><script src="{% static 'dashboard/dashboard.js' %}"></script></body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Passages | {{ entreprise.raison_sociale }}</title>
+  {% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
+<link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'client/client.css' %}">
+  <link rel="stylesheet" href="{% static 'passage/passage.css' %}?v=7">
+</head>
+<body style="--company-color:{{ entreprise.couleur_principale|default:'#1462d2' }}">
+{% include "dashboard/partials/sidebar.html" %}
+<div class="page">
+  {% include "dashboard/partials/header.html" %}
+  <main class="passage-report-page">
+    {% if messages %}{% for message in messages %}<div class="client-alert">{{ message }}</div>{% endfor %}{% endif %}
+
+    <header class="passage-report-head">
+      <div><p><span>Exploitation</span><b>›</b> Passages</p><h1>Suivi des lavages</h1><small>Gérez les lavages, règlements et commissions de {{ entreprise.raison_sociale }}.</small></div>
+      <a href="{% url 'passage:create' %}">＋ Nouveau passage</a>
+    </header>
+
+    <section class="passage-kpis">
+      <article><i class="today">◷</i><div><span>Aujourd’hui</span><strong>{{ passage_stats.today }}</strong><small>passages</small></div></article>
+      <article><i class="month">▦</i><div><span>Ce mois</span><strong>{{ passage_stats.month }}</strong><small>passages</small></div></article>
+      <article><i class="waiting">○</i><div><span>En attente</span><strong>{{ passage_stats.waiting }}</strong><small>à démarrer</small></div></article>
+      <article><i class="progressing">↻</i><div><span>En cours</span><strong>{{ passage_stats.in_progress }}</strong><small>sur les pistes</small></div></article>
+      <article><i class="finished">✓</i><div><span>Terminés</span><strong>{{ passage_stats.completed }}</strong><small>ce mois</small></div></article>
+      <article><i class="revenue">₣</i><div><span>Chiffre d’affaires</span><strong>{{ passage_stats.revenue|floatformat:0 }}</strong><small>{{ entreprise.devise }}</small></div></article>
+    </section>
+
+    <section class="passage-list-panel">
+      <header>
+        <div><h2>Liste des passages</h2><p>{{ total }} résultat{{ total|pluralize }} · {{ total_amount|floatformat:0 }} {{ entreprise.devise }}</p></div>
+      </header>
+      <form class="passage-filters" method="get">
+        <label class="passage-search"><span>⌕</span><input name="q" value="{{ query }}" placeholder="Client, immatriculation ou type de lavage..."></label>
+        <select name="statut">
+          <option value="">Tous les statuts</option>
+          {% for value,label in status_choices %}<option value="{{ value }}"{% if selected_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <select name="reglement">
+          <option value="">Tous les règlements</option>
+          {% for value,label in payment_choices %}<option value="{{ value }}"{% if selected_payment == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button type="submit">Filtrer</button>
+        {% if query or selected_status or selected_payment %}<a href="{% url 'passage:index' %}">Réinitialiser</a>{% endif %}
+      </form>
+
+      <div class="passage-table-wrap">
+        <table class="passage-report-table">
+          <thead><tr><th>N° / Date</th><th>Client & véhicule</th><th>Prestation</th><th>Laveur</th><th>Montants</th><th>Règlement</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody>
+          {% for item in passages %}
+            <tr>
+              <td><strong>#{{ item.pk }}</strong><small>{{ item.date_heure_debut|date:"d/m/Y H:i" }}</small></td>
+              <td><strong>{{ item.client.nom_complet }}</strong><small>{{ item.vehicule.immatriculation }} · {{ item.vehicule.type_vehicule|default:"Type non précisé" }}</small></td>
+              <td><strong>{{ item.type_lavage.libelle }}</strong><small>{{ item.type_lavage.get_type_vehicule_display }}{% if item.piste_id %} · Piste #{{ item.piste_id }}{% endif %}</small></td>
+              <td><strong>{{ item.employe_realisateur.nom }}</strong><small>Commission : {{ item.commission_employe|floatformat:0 }}</small></td>
+              <td><strong>{{ item.montant_total|floatformat:0 }} {{ entreprise.devise }}</strong><small>Payé : {{ item.montant_paye|floatformat:0 }} · Reste : {{ item.montant_restant|floatformat:0 }}</small></td>
+              <td><span class="passage-payment payment-{{ item.statut_reglement }}">{{ item.get_statut_reglement_display }}</span><small>{{ item.get_mode_reglement_display }}</small></td>
+              <td><span class="passage-status status-{{ item.statut }}">{{ item.get_statut_display }}</span></td>
+              <td><div class="passage-row-actions">
+                <a class="edit icon-action" href="{% url 'passage:update' item.pk %}" aria-label="Modifier le passage" title="Modifier"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg></a>
+                {% if item.statut == 'en_attente' or item.statut == 'en_cours' %}<form method="post" action="{% url 'passage:change_status' item.pk %}">{% csrf_token %}<button class="advance" type="submit">{% if item.statut == 'en_attente' %}Démarrer{% else %}Terminer{% endif %}</button></form>{% endif %}
+                <form method="post" action="{% url 'passage:delete' item.pk %}" onsubmit="return confirm('Supprimer ce passage ?')">{% csrf_token %}<button class="delete icon-action" type="submit" aria-label="Supprimer le passage" title="Supprimer"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></form>
+              </div></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="8" class="passage-empty"><strong>Aucun passage trouvé</strong><span>Modifiez les filtres ou enregistrez un nouveau lavage.</span><a href="{% url 'passage:create' %}">Créer un passage</a></td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="{% static 'dashboard/dashboard.js' %}"></script>
+</body>
+</html>

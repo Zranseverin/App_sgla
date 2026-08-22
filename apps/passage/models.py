@@ -11,8 +11,6 @@ class Passage(models.Model):
         ("mtn", "MTN Mobile Money"),
         ("moov", "Moov Money"),
         ("carte", "Carte bancaire"),
-        ("forfait", "Forfait"),
-        ("autre", "Autre"),
     ]
     STATUTS = [
         ("en_attente", "En attente"),

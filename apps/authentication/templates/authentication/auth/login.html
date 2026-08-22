@@ -1,9 +1,10 @@
+{% load static %}
 <!doctype html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Connexion | SGLA</title>
+    <title>Connexion | CleanGo</title>
     <style>
         :root {
             color-scheme: light;
@@ -124,9 +125,18 @@
             input { min-height: 48px; font-size: 16px; }
         }
     </style>
+    <link rel="stylesheet" href="{% static 'authentication/login.css' %}?v=5">
+    <link rel="stylesheet" href="{% static 'branding/cleango-branding.css' %}?v=1">
 </head>
 <body>
-    <main class="card">
+    <main class="login-shell">
+        <aside class="login-visual">
+            <a class="visual-brand" href="/"><span class="cleango-logo"><img src="{% static 'branding/cleango-logo.png' %}" alt="Logo CleanGo"></span><div><strong>CleanGo</strong><small>L’idée du lavage en un clic</small></div></a>
+            <div class="visual-copy"><span class="eyebrow">GESTION SIMPLE ET CENTRALISÉE</span><h2>Pilotez votre station avec sérénité.</h2><p>Passages, caisse, employés et commissions réunis dans un seul espace professionnel.</p><div class="visual-features"><span>✓ Suivi de l’activité en temps réel</span><span>✓ Gestion sécurisée de votre entreprise</span><span>✓ Accessible sur ordinateur et mobile</span></div></div>
+            <p class="visual-footer">L’idée du lavage en un clic</p>
+        </aside>
+        <section class="card">
+        <a class="back-home" href="/">← Retour au site</a>
         <div class="brand">SG</div>
 
         {% if messages %}
@@ -166,36 +176,67 @@
                 {% csrf_token %}
                 <div class="field">
                     <label for="email">Adresse email</label>
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value="{{ form.email.value|default:'' }}"
-                        autocomplete="email"
-                        placeholder="nom@entreprise.com"
-                        required
-                        autofocus
-                    >
+                    <div class="email-field">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value="{{ form.email.value|default:'' }}"
+                            autocomplete="email"
+                            placeholder="nom@entreprise.com"
+                            required
+                            autofocus
+                        >
+                    </div>
                 </div>
                 <div class="field">
                     <label for="password">Mot de passe</label>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        autocomplete="current-password"
-                        placeholder="Votre mot de passe"
-                        required
-                    >
+                    <div class="password-field">
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="Votre mot de passe"
+                            required
+                        >
+                        <button class="password-toggle" type="button" aria-label="Afficher le mot de passe" aria-pressed="false">
+                            <svg class="eye-open" aria-hidden="true" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+                            <svg class="eye-closed" aria-hidden="true" viewBox="0 0 24 24"><path d="m3 3 18 18M10.6 6.1c.5-.1.9-.1 1.4-.1 6 0 9.5 6 9.5 6a17 17 0 0 1-2.1 2.7M6.5 7.3C4 9 2.5 12 2.5 12s3.5 6 9.5 6c1.4 0 2.7-.3 3.8-.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <a class="forgot-link" href="{% url 'authentication:forgot_password' %}">Mot de passe oublié ?</a>
-                <button type="submit">Se connecter</button>
+                <button type="submit">Se connecter <span>→</span></button>
             </form>
             <p class="register-link">
-                Nouveau sur SGLA ?
+                Nouveau sur CleanGo ?
                 <a href="{% url 'authentication:inscription' %}">Créer une entreprise</a>
             </p>
         {% endif %}
+        </section>
+        <footer class="login-footer">
+            <span>© 2026 CleanGo. Tous droits réservés.</span>
+            <nav aria-label="Liens de pied de page">
+                <a href="/">Accueil</a>
+                <a href="{% url 'authentication:inscription' %}">Inscription</a>
+                <a href="mailto:contact@sgla.ci">Contact</a>
+            </nav>
+        </footer>
     </main>
+    <script>
+        (() => {
+            const password = document.querySelector("#password");
+            const toggle = document.querySelector(".password-toggle");
+            if (!password || !toggle) return;
+            toggle.addEventListener("click", () => {
+                const isVisible = password.type === "text";
+                password.type = isVisible ? "password" : "text";
+                toggle.setAttribute("aria-pressed", String(!isVisible));
+                toggle.setAttribute("aria-label", isVisible ? "Afficher le mot de passe" : "Masquer le mot de passe");
+            });
+        })();
+    </script>
 </body>
 </html>

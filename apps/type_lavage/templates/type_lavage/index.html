@@ -6,6 +6,7 @@
 {% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
 <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'type_lavage/type_lavage.css' %}">
+<link rel="stylesheet" href="{% static 'type_lavage/catalog-board.css' %}?v=1">
 </head><body style="--company-color:{{ entreprise.couleur_principale|default:'#1c324d' }}">
 {% include "dashboard/partials/sidebar.html" %}
 <div class="page">{% include "dashboard/partials/header.html" %}
@@ -20,23 +21,26 @@
     <article><small>Actifs</small><strong>{{ actifs }}</strong><span>services disponibles</span></article>
     <article><small>Inactifs</small><strong>{{ inactifs }}</strong><span>services masqués</span></article>
   </div>
-  <section class="wash-card">
-    <div class="wash-table-wrap"><table class="wash-table">
-      <thead><tr><th>Service</th><th>Prix unitaire</th><th>Durée estimée</th><th>Statut</th><th>Dernière modification</th><th>Actions</th></tr></thead>
-      <tbody>
-      {% for item in types_lavage %}
-      <tr>
-        <td><strong>{{ item.libelle }}</strong><small>{{ item.description|default:"Aucune description"|truncatechars:85 }}</small></td>
-        <td><b>{{ item.prix_unitaire|floatformat:0 }} {{ entreprise.devise }}</b></td>
-        <td>{% if item.duree_estimee_min %}{{ item.duree_estimee_min }} min{% else %}—{% endif %}</td>
-        <td><span class="wash-status {% if not item.actif %}inactive{% endif %}">{% if item.actif %}Actif{% else %}Inactif{% endif %}</span></td>
-        <td>{{ item.updated_at|date:"d/m/Y H:i" }}</td>
-        <td><div class="wash-actions"><a href="{% url 'type_lavage:update' item.pk %}">Modifier</a><form method="post" action="{% url 'type_lavage:delete' item.pk %}" onsubmit="return confirm('Supprimer ce type de lavage ?')">{% csrf_token %}<button type="submit">Supprimer</button></form></div></td>
-      </tr>
-      {% empty %}<tr><td colspan="6" class="wash-empty"><strong>Aucun type de lavage</strong><span>Créez votre première prestation pour commencer.</span></td></tr>{% endfor %}
-      </tbody>
-    </table></div>
+  {% regroup types_lavage by get_type_vehicule_display as vehicle_groups %}
+  {% if vehicle_groups %}
+  <section class="wash-catalog-board" aria-label="Prestations par type de véhicule">
+    {% for vehicle_group in vehicle_groups %}
+    <article class="wash-catalog-column">
+      <header><div><span class="vehicle-dot"></span><h2>{{ vehicle_group.grouper }}</h2></div><b>{{ vehicle_group.list|length }}</b></header>
+      <div class="wash-catalog-list">
+        {% for item in vehicle_group.list %}
+        <article class="wash-service-card {% if not item.actif %}is-inactive{% endif %}">
+          <div class="service-card-top"><div><small>PRESTATION</small><h3>{{ item.libelle }}</h3></div><span class="wash-status {% if not item.actif %}inactive{% endif %}">{% if item.actif %}Actif{% else %}Inactif{% endif %}</span></div>
+          <p>{{ item.description|default:"Aucune description"|truncatechars:110 }}</p>
+          <div class="service-card-metrics"><div><small>PRIX</small><strong>{{ item.prix_unitaire|floatformat:0 }} <span>{{ entreprise.devise }}</span></strong></div><div><small>DURÉE</small><strong>{% if item.duree_estimee_min %}{{ item.duree_estimee_min }} <span>min</span>{% else %}—{% endif %}</strong></div></div>
+          <footer><small>Modifié le {{ item.updated_at|date:"d/m/Y" }}</small><div class="wash-actions"><a href="{% url 'type_lavage:update' item.pk %}">Modifier</a><form method="post" action="{% url 'type_lavage:delete' item.pk %}" onsubmit="return confirm('Supprimer ce type de lavage ?')">{% csrf_token %}<button type="submit">Supprimer</button></form></div></footer>
+        </article>
+        {% endfor %}
+      </div>
+    </article>
+    {% endfor %}
   </section>
+  {% else %}<div class="wash-empty-board"><strong>Aucun type de lavage</strong><span>Créez votre première prestation pour commencer.</span><a href="{% url 'type_lavage:create' %}">Créer des prestations</a></div>{% endif %}
 </main></div>
 <script src="{% static 'dashboard/dashboard.js' %}"></script>
 </body></html>

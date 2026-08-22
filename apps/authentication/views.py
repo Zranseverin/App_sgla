@@ -17,9 +17,14 @@ import string
 import logging
 import base64
 import secrets
+import json
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 from io import BytesIO
 import qrcode
 import yagmail
+from cryptography.fernet import InvalidToken
 
 from .models import User
 from .forms import (
@@ -282,9 +287,18 @@ def enterprise_settings_view(request):
             'plan': paid_payment.plan,
             'type': 'Abonnement payant',
             'start': paid_payment.updated_at.date(),
-            'end': None,
+            'end': (
+                entreprise.date_fin_abonnement
+                if paid_payment.plan_id == entreprise.plan_id
+                else None
+            ),
             'status': 'Actif' if paid_payment.plan_id == entreprise.plan_id else 'Terminé',
         })
+    settings_end_date = (
+        entreprise.date_fin_abonnement
+        if entreprise.statut_abonnement == 'actif'
+        else entreprise.date_fin_essai
+    )
     return render(request, 'authentication/enterprise_settings.html', {
         'user': user,
         'entreprise': entreprise,
@@ -295,9 +309,9 @@ def enterprise_settings_view(request):
         'stats': {
             'total_users': entreprise.utilisateurs.count(),
             'jours_restants': max(
-                (entreprise.date_fin_essai - timezone.localdate()).days,
+                (settings_end_date - timezone.localdate()).days,
                 0,
-            ) if entreprise.date_fin_essai else 0,
+            ) if settings_end_date else 0,
         },
         'user_initials': ''.join(
             part[0].upper() for part in user.nom.split()[:2] if part
@@ -372,7 +386,20 @@ def configuration_hub_view(request):
         and entreprise.date_fin_essai
         and entreprise.date_fin_essai < today
     )
-    subscription_active = entreprise.statut_abonnement == 'actif' or (
+    paid_subscription_expired = bool(
+        entreprise.statut_abonnement == 'actif'
+        and entreprise.date_fin_abonnement
+        and entreprise.date_fin_abonnement < today
+    )
+    subscription_end_date = (
+        entreprise.date_fin_abonnement
+        if entreprise.statut_abonnement == 'actif'
+        else entreprise.date_fin_essai
+    )
+    subscription_active = (
+        entreprise.statut_abonnement == 'actif'
+        and not paid_subscription_expired
+    ) or (
         entreprise.statut_abonnement == 'essai' and not trial_expired
     )
     payment_options = [
@@ -444,6 +471,13 @@ def configuration_hub_view(request):
                     messages.success(
                         request,
                         f'Email de test envoyé à {entreprise.email_contact}.',
+                    )
+                except InvalidToken:
+                    logger.exception('Mot de passe SMTP illisible pour entreprise=%s', entreprise.pk)
+                    messages.error(
+                        request,
+                        'Le mot de passe SMTP enregistré ne peut plus être lu. '
+                        'Ressaisissez-le puis enregistrez la configuration.',
                     )
                 except Exception:
                     logger.exception('Échec du test SMTP pour entreprise=%s', entreprise.pk)
@@ -593,13 +627,15 @@ def configuration_hub_view(request):
         'payment_methods': payment_options,
         'recent_payments': entreprise.paiements_abonnement.select_related('plan')[:5],
         'trial_expired': trial_expired,
+        'paid_subscription_expired': paid_subscription_expired,
         'subscription_active': subscription_active,
+        'subscription_end_date': subscription_end_date,
         'stats': {
             'total_users': entreprise.utilisateurs.count(),
             'jours_restants': max(
-                (entreprise.date_fin_essai - timezone.localdate()).days,
+                (subscription_end_date - timezone.localdate()).days,
                 0,
-            ) if entreprise.date_fin_essai else 0,
+            ) if subscription_end_date else 0,
         },
         'user_initials': ''.join(
             part[0].upper() for part in user.nom.split()[:2] if part
@@ -614,6 +650,7 @@ def forgot_password_view(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             user = User.objects.filter(email__iexact=email).first()
+            delivery_failed = False
             if user is not None:
                 token = signing.dumps(
                     {'user_id': user.pk, 'password': user.password},
@@ -651,11 +688,19 @@ def forgot_password_view(request):
                             fail_silently=False,
                         )
                 except Exception:
+                    delivery_failed = True
                     logger.exception(
                         'Échec envoi réinitialisation utilisateur=%s entreprise=%s',
                         user.pk,
                         user.entreprise_id,
                     )
+            if delivery_failed:
+                messages.error(
+                    request,
+                    'Le serveur de messagerie n’a pas pu envoyer le lien. '
+                    'Vérifiez la configuration SMTP de l’entreprise ou contactez son administrateur.',
+                )
+                return redirect('authentication:forgot_password')
             messages.success(
                 request,
                 'Si un compte correspond à cet email, un lien de réinitialisation a été envoyé.',
@@ -708,8 +753,9 @@ def company_register_view(request):
     if request.session.get('utilisateur_id'):
         return redirect('authentication:connexion')
 
+    google_identity = request.session.get('google_signup_identity')
     if request.method == 'POST':
-        form = RegisterForm(request.POST, request.FILES)
+        form = RegisterForm(request.POST, request.FILES, google_identity=google_identity)
         if form.is_valid():
             with transaction.atomic():
                 plan = form.cleaned_data['plan']
@@ -752,7 +798,7 @@ def company_register_view(request):
                     role=roles['admin'],
                     statut='actif',
                 )
-                user.set_password(form.cleaned_data['password'])
+                user.set_password(form.cleaned_data.get('password') or secrets.token_urlsafe(32))
                 user.save()
 
             messages.success(
@@ -760,14 +806,94 @@ def company_register_view(request):
                 f'Compte créé avec succès. Votre essai {plan.nom} de '
                 f'{plan.duree_essai_jours} jours est actif.',
             )
+            request.session.pop('google_signup_identity', None)
+            if google_identity:
+                request.session['utilisateur_id'] = user.pk
+                return redirect('dashboard:index')
             return redirect('authentication:connexion')
     else:
-        form = RegisterForm()
+        form = RegisterForm(google_identity=google_identity)
 
     return render(request, 'authentication/register.html', {
         'form': form,
         'plans': Plan.objects.filter(actif=True).order_by('prix_mensuel'),
+        'google_identity': google_identity,
+        'google_oauth_enabled': bool(settings.GOOGLE_OAUTH_CLIENT_ID and settings.GOOGLE_OAUTH_CLIENT_SECRET),
     })
+
+
+def google_auth_start(request):
+    if not settings.GOOGLE_OAUTH_CLIENT_ID or not settings.GOOGLE_OAUTH_CLIENT_SECRET:
+        messages.error(request, 'La connexion Google doit être configurée par l’administrateur.')
+        return redirect('authentication:inscription')
+    state = secrets.token_urlsafe(32)
+    request.session['google_oauth_state'] = state
+    redirect_uri = settings.GOOGLE_OAUTH_REDIRECT_URI or request.build_absolute_uri(
+        reverse('authentication:google_auth_callback')
+    )
+    params = {
+        'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
+        'redirect_uri': redirect_uri,
+        'response_type': 'code',
+        'scope': 'openid email profile',
+        'state': state,
+        'prompt': 'select_account',
+    }
+    return redirect(f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}")
+
+
+def google_auth_callback(request):
+    expected_state = request.session.pop('google_oauth_state', None)
+    if not expected_state or not secrets.compare_digest(request.GET.get('state', ''), expected_state):
+        messages.error(request, 'La vérification de sécurité Google a échoué. Veuillez réessayer.')
+        return redirect('authentication:inscription')
+    if request.GET.get('error') or not request.GET.get('code'):
+        messages.error(request, 'L’inscription Google a été annulée.')
+        return redirect('authentication:inscription')
+
+    redirect_uri = settings.GOOGLE_OAUTH_REDIRECT_URI or request.build_absolute_uri(
+        reverse('authentication:google_auth_callback')
+    )
+    token_data = urlencode({
+        'code': request.GET['code'],
+        'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
+        'client_secret': settings.GOOGLE_OAUTH_CLIENT_SECRET,
+        'redirect_uri': redirect_uri,
+        'grant_type': 'authorization_code',
+    }).encode()
+    try:
+        token_request = Request(
+            'https://oauth2.googleapis.com/token',
+            data=token_data,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        )
+        with urlopen(token_request, timeout=10) as response:
+            access_token = json.load(response)['access_token']
+        profile_request = Request(
+            'https://openidconnect.googleapis.com/v1/userinfo',
+            headers={'Authorization': f'Bearer {access_token}'},
+        )
+        with urlopen(profile_request, timeout=10) as response:
+            profile = json.load(response)
+    except (HTTPError, URLError, KeyError, ValueError):
+        logger.exception('Échec de l’authentification Google')
+        messages.error(request, 'Google n’a pas pu vérifier votre compte. Veuillez réessayer.')
+        return redirect('authentication:inscription')
+
+    if not profile.get('email') or not profile.get('email_verified'):
+        messages.error(request, 'Votre adresse email Google doit être vérifiée.')
+        return redirect('authentication:inscription')
+    if User.objects.filter(email__iexact=profile['email']).exists():
+        messages.error(request, 'Un compte existe déjà avec cette adresse. Connectez-vous.')
+        return redirect('authentication:connexion')
+
+    request.session['google_signup_identity'] = {
+        'sub': profile.get('sub', ''),
+        'name': profile.get('name') or profile['email'].split('@')[0],
+        'email': profile['email'].lower(),
+    }
+    messages.success(request, 'Compte Google vérifié. Complétez les informations de votre entreprise.')
+    return redirect('authentication:inscription')
 
 
 # ============================================================================
@@ -832,6 +958,21 @@ def logout_view(request):
     request.session.pop('utilisateur_id', None)
     messages.info(request, 'Vous avez été déconnecté.')
     return redirect('authentication:connexion')
+
+
+def subscription_expired_view(request):
+    user = User.objects.select_related("entreprise", "role").filter(
+        pk=request.session.get("utilisateur_id"), statut="actif"
+    ).first()
+    if user is None:
+        return redirect("authentication:connexion")
+    if user.entreprise.abonnement_est_actif():
+        return redirect("dashboard:index")
+    return render(request, "authentication/subscription_expired.html", {
+        "utilisateur_connecte": user,
+        "entreprise": user.entreprise,
+        "is_admin": user.role.code == "admin",
+    })
 
 
 def register_view(request):

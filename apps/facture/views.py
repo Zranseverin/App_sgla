@@ -144,7 +144,7 @@ def _invoice_pdf(facture, entreprise):
     centered(123, 8, "A conserver comme justificatif de paiement.")
     centered(100, 8, "Merci pour votre confiance, a tres bientot !", True)
     commands.append(b"10 84 m 216 84 l S")
-    centered(65, 7, "Document genere par SGLA")
+    centered(65, 7, "Document genere par CleanGo")
     stream = b"\n".join(commands)
     content_number = 7 if logo_data else 6
     image_resource = b" /XObject << /Im1 6 0 R >>" if logo_data else b""

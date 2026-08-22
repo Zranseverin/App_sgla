@@ -1,0 +1,8 @@
+.sgla-hero-banner{min-height:240px;background-image:linear-gradient(100deg,rgba(15,104,64,.96) 0%,rgba(22,138,85,.88) 42%,rgba(242,140,40,.48) 100%),url("images/sgla-banner-carwash.png");background-position:center;background-size:cover;background-repeat:no-repeat}.sgla-hero-banner:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(5,54,32,.24),transparent 58%)}.sgla-hero-banner .banner-content{z-index:2;min-height:240px}@media(max-width:760px){.sgla-hero-banner{min-height:260px;background-position:64% center;background-image:linear-gradient(100deg,rgba(15,104,64,.97),rgba(22,138,85,.9) 63%,rgba(242,140,40,.55)),url("images/sgla-banner-carwash.png")}.sgla-hero-banner .banner-content{min-height:260px}}
+.finder-app,.finder-sidebar,.finder-map-wrap,.finder-map-wrap #finder-map{height:650px!important;min-height:650px!important}
+
+@media(max-width:760px){.finder-app,.finder-map-wrap,.finder-map-wrap #finder-map,.finder-sidebar{height:650px!important;min-height:0!important}}
+
+@media(max-width:480px){.finder-app,.finder-map-wrap,.finder-map-wrap #finder-map,.finder-sidebar{height:600px!important;min-height:0!important}}
+
+@media(max-height:650px) and (orientation:landscape) and (max-width:900px){.finder-app,.finder-map-wrap,.finder-map-wrap #finder-map,.finder-sidebar{height:calc(100vh - 62px)!important;min-height:0!important}}

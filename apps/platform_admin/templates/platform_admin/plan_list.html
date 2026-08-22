@@ -1,0 +1,28 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}Plans d’abonnement{% endblock %}
+{% block heading %}Plans d’abonnement{% endblock %}
+{% block content %}
+<header class="pa-page-head">
+  <div><span>CONFIGURATION COMMERCIALE</span><h1>Plans d’abonnement</h1><p>Définissez les offres proposées aux entreprises CleanGo.</p></div>
+  <a href="{% url 'platform_admin:plan_create' %}">＋ Nouveau plan</a>
+</header>
+<section class="pa-plan-grid">
+  {% for plan in plans %}
+  <article class="pa-plan-card {% if not plan.actif %}disabled{% endif %}">
+    <header><div><span>{{ plan.code }}</span><h2>{{ plan.nom }}</h2></div><span class="pa-status {% if plan.actif %}actif{% else %}suspendu{% endif %}">{% if plan.actif %}Actif{% else %}Inactif{% endif %}</span></header>
+    <p>{{ plan.description|default:"Aucune description renseignée." }}</p>
+    <div class="pa-plan-price"><strong>{{ plan.prix_mensuel|floatformat:0 }}</strong><span>{{ plan.devise }} / mois</span></div>
+    <ul>
+      <li><span>Essai gratuit</span><strong>{{ plan.duree_essai_jours }} jours</strong></li>
+      <li><span>Centres maximum</span><strong>{{ plan.max_centres|default:"Illimité" }}</strong></li>
+      <li><span>Utilisateurs maximum</span><strong>{{ plan.max_utilisateurs|default:"Illimité" }}</strong></li>
+      <li><span>Quota SMS mensuel</span><strong>{{ plan.quota_sms_mensuel|default:"Illimité" }}</strong></li>
+      <li><span>Entreprises abonnées</span><strong>{{ plan.nombre_entreprises }}</strong></li>
+    </ul>
+    <footer><a href="{% url 'platform_admin:plan_edit' plan.pk %}">Modifier</a><form method="post" action="{% url 'platform_admin:plan_toggle' plan.pk %}">{% csrf_token %}<button class="{% if plan.actif %}danger{% endif %}">{% if plan.actif %}Désactiver{% else %}Activer{% endif %}</button></form></footer>
+  </article>
+  {% empty %}
+  <div class="pa-empty-plans"><strong>Aucun plan configuré</strong><p>Créez votre première offre d’abonnement CleanGo.</p><a href="{% url 'platform_admin:plan_create' %}">Créer un plan</a></div>
+  {% endfor %}
+</section>
+{% endblock %}

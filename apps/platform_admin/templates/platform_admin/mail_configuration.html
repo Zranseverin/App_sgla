@@ -1,0 +1,35 @@
+{% extends "platform_admin/base.html" %}
+{% block title %}Configuration email{% endblock %}
+{% block heading %}Configuration email{% endblock %}
+{% block content %}
+<header class="pa-page-head">
+  <div><span>MESSAGERIE CLEANGO</span><h1>Configuration email</h1><p>Configurez le serveur SMTP utilisé pour les messages envoyés par la plateforme.</p></div>
+</header>
+<div class="pa-mail-layout">
+  <form method="post" class="pa-create-form">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="pa-alert error">{{ form.non_field_errors }}</div>{% endif %}
+    <section class="pa-form-section">
+      <header><b>1</b><div><h2>Identité de l’expéditeur</h2><p>Nom et adresse affichés aux destinataires</p></div></header>
+      <div class="pa-form-grid">
+        {% for field in form %}{% if field.name == "nom_expediteur" or field.name == "email_expediteur" %}<div class="pa-field"><label>{{ field.label }}<em>*</em></label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>{% endif %}{% endfor %}
+      </div>
+    </section>
+    <section class="pa-form-section">
+      <header><b>2</b><div><h2>Serveur SMTP</h2><p>Paramètres fournis par votre hébergeur ou service email</p></div></header>
+      <div class="pa-form-grid">
+        {% for field in form %}{% if field.name == "serveur_smtp" or field.name == "port_smtp" or field.name == "utilisateur_smtp" or field.name == "mot_de_passe" %}<div class="pa-field"><label>{{ field.label }}{% if field.field.required %}<em>*</em>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}</div>{% endif %}{% endfor %}
+        <div class="pa-field wide pa-mail-options"><label>{{ form.utiliser_tls }} <span>Utiliser TLS</span></label><label>{{ form.utiliser_ssl }} <span>Utiliser SSL</span></label><label>{{ form.actif }} <span>Configuration active</span></label></div>
+      </div>
+    </section>
+    <footer class="pa-form-actions"><button>Enregistrer la configuration</button></footer>
+  </form>
+  <aside class="pa-mail-test">
+    <span>VÉRIFICATION</span><h2>Tester l’envoi</h2><p>Enregistrez d’abord les paramètres, puis envoyez un message de contrôle.</p>
+    <form method="post" action="{% url 'platform_admin:test_mail_configuration' %}">{% csrf_token %}
+      <label for="email-test">Email destinataire</label><input class="admin-control" id="email-test" type="email" name="email_test" value="{{ platform_admin.email }}" required>
+      <button>Envoyer un email de test</button>
+    </form>
+    <div class="pa-security-note"><strong>Mot de passe protégé</strong><p>Le mot de passe SMTP est chiffré avant son enregistrement dans la base.</p></div>
+  </aside>
+</div>
+{% endblock %}

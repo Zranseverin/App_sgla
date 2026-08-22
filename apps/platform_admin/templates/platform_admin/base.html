@@ -1,0 +1,46 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Administration{% endblock %} | CleanGo</title>
+  <link rel="stylesheet" href="{% static 'platform_admin/admin.css' %}?v=1">
+</head>
+<body>
+<aside class="pa-sidebar">
+  <a class="pa-brand" href="{% url 'platform_admin:dashboard' %}">
+    <span><img src="{% static 'branding/cleango-logo.png' %}" alt="Logo CleanGo"></span>
+    <div><strong>CleanGo</strong><small>Administration plateforme</small></div>
+  </a>
+  <nav>
+    <a class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'platform_admin:dashboard' %}"><i>▦</i>Vue d’ensemble</a>
+    <a class="{% if request.resolver_match.url_name == 'visitor_analytics' %}active{% endif %}" href="{% url 'platform_admin:visitor_analytics' %}"><i>◎</i>Visiteurs & intérêt</a>
+    <a class="{% if request.resolver_match.url_name == 'create_enterprise' %}active{% endif %}" href="{% url 'platform_admin:create_enterprise' %}"><i>＋</i>Créer une entreprise</a>
+    <a class="{% if 'plan_' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'platform_admin:plan_list' %}"><i>◆</i>Plans d’abonnement</a>
+    <a class="{% if 'mail_configuration' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'platform_admin:mail_configuration' %}"><i>✉</i>Configuration email</a>
+    <a href="{% url 'platform_admin:dashboard' %}?statut=actif"><i>✓</i>Abonnements actifs</a>
+    <a href="{% url 'platform_admin:dashboard' %}?statut=essai"><i>◷</i>Essais gratuits</a>
+    <a href="{% url 'platform_admin:dashboard' %}?statut=suspendu"><i>×</i>Comptes suspendus</a>
+  </nav>
+  <div class="pa-sidebar-user">
+    <span>{{ platform_admin.nom|slice:":2"|upper }}</span>
+    <div><strong>{{ platform_admin.nom }}</strong><small>Super administrateur</small></div>
+    <a href="{% url 'platform_admin:logout' %}" title="Déconnexion">↪</a>
+  </div>
+</aside>
+<div class="pa-page">
+  <header class="pa-topbar">
+    <button type="button" data-admin-menu>☰</button>
+    <div><small>Plateforme CleanGo</small><strong>{% block heading %}Administration{% endblock %}</strong></div>
+    <a href="/" target="_blank">Voir le site public ↗</a>
+  </header>
+  <main>
+    {% if messages %}{% for message in messages %}<div class="pa-alert {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<div class="pa-overlay" data-admin-menu></div>
+<script>document.querySelectorAll("[data-admin-menu]").forEach(el=>el.addEventListener("click",()=>document.body.classList.toggle("pa-menu-open")));</script>
+</body>
+</html>
