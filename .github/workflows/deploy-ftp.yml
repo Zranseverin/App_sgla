@@ -1,0 +1,58 @@
+name: Deploiement FTP
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-ftp
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Mettre a jour le serveur
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Preparer le redemarrage Passenger
+        run: |
+          mkdir -p tmp
+          date --utc +%FT%TZ > tmp/restart.txt
+
+      - name: Envoyer les fichiers par FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ secrets.FTP_PROTOCOL }}
+          port: ${{ secrets.FTP_PORT }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.venv/**
+            **/venv/**
+            **/__pycache__/**
+            **/*.pyc
+            **/.env
+            **/*.sqlite3
+            **/db.sqlite3
+            **/media/**
+            **/staticfiles/**
+            **/*.log
+            **/.agents/**
+            **/.http-forge/**
+            **/.qodo/**
+            documentation/**
+            *.png
+            shiloh-*.env
+            shiloh-*.css
