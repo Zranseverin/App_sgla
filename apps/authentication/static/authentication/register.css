@@ -81,3 +81,27 @@ input,select{min-height:47px}
     .actions{border-right:0;border-left:0;border-radius:0}.actions p{display:none}
     .registration-footer{align-items:flex-start;flex-direction:column;gap:10px}.registration-footer nav{width:100%;justify-content:space-between}
 }
+
+/* Fiche entreprise : présentation simple, compacte et lisible. */
+.company-step{background:#f8faf9}
+.company-step .panel-head{margin-bottom:26px}
+.registration-step .grid{grid-template-columns:1fr;max-width:480px;margin:0 auto;gap:15px}
+.registration-step .field,.registration-step .field.full{grid-column:1}
+.registration-step .grid input,.registration-step .grid select{min-height:42px;padding:9px 12px;border-radius:8px;font-size:13px}
+.company-step .field label{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;color:#203b2f;font-size:13px;font-weight:750}
+.required-mark{margin-right:auto;color:#d96e0d}
+.optional-mark{color:#829087;font-size:10px;font-weight:600}
+.company-step input,.company-step select{min-height:42px;padding:9px 12px;border:1px solid #d9e2dc;border-radius:8px;color:#203b2f;background:#fff;box-shadow:0 1px 2px #17382b08;font-size:13px}
+.company-step input::placeholder{color:#9aa8a0}
+.company-step input:focus,.company-step select:focus{border-color:var(--primary);box-shadow:0 0 0 3px #168a5518}
+.company-step input[type=file]{min-height:46px;padding:6px;color:#6d8177;font-size:11px}
+.company-step input[type=file]::file-selector-button{min-height:32px;margin-right:10px;padding:6px 11px;border:1px solid #cfe2d6;border-radius:6px;color:var(--primary-dark);background:#eff7f2}
+.company-step .color-row{display:grid;grid-template-columns:74px 1fr}
+.company-step .color-row input{width:74px;padding:5px}
+.company-step .color-row span{color:#6d8177;font-size:12px}
+@media(max-width:560px){
+    .registration-step .grid{gap:16px}
+    .company-step .field label{font-size:12px}
+    .company-step input,.company-step select{min-height:44px;font-size:16px}
+    .company-step input[type=file]{font-size:11px}
+}

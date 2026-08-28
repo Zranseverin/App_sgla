@@ -112,7 +112,7 @@
             .plan label { padding: 17px; }
         }
     </style>
-    <link rel="stylesheet" href="{% static 'authentication/register.css' %}?v=9">
+    <link rel="stylesheet" href="{% static 'authentication/register.css' %}?v=10">
     <link rel="stylesheet" href="{% static 'branding/cleango-branding.css' %}?v=1">
 </head>
 <body>
@@ -186,30 +186,30 @@
             </div>
         </section>
 
-        <section class="panel registration-step" data-registration-step="2" hidden>
+        <section class="panel registration-step company-step" data-registration-step="2" hidden>
             <div class="panel-head">
                 <span class="step">2</span>
-                <div><h2>Personnalisez votre entreprise</h2><p class="hint">Vous pourrez modifier ces informations plus tard.</p></div>
+                <div><h2>Informations de l’entreprise</h2><p class="hint">Renseignez les informations essentielles. Vous pourrez les modifier plus tard.</p></div>
             </div>
             <div class="grid">
                 <div class="field">
-                    <label for="{{ form.entreprise_nom.id_for_label }}">Raison sociale</label>
+                    <label for="{{ form.entreprise_nom.id_for_label }}">Raison sociale <span class="required-mark" aria-hidden="true">*</span></label>
                     {{ form.entreprise_nom }}{% for error in form.entreprise_nom.errors %}<div class="error">{{ error }}</div>{% endfor %}
                 </div>
                 <div class="field">
-                    <label for="{{ form.telephone_contact.id_for_label }}">Téléphone</label>
+                    <label for="{{ form.telephone_contact.id_for_label }}">Téléphone <span class="optional-mark">Facultatif</span></label>
                     {{ form.telephone_contact }}{% for error in form.telephone_contact.errors %}<div class="error">{{ error }}</div>{% endfor %}
                 </div>
                 <div class="field full">
-                    <label for="{{ form.logo_url.id_for_label }}">Logo de l’entreprise <span class="hint">(PNG, JPG, WebP)</span></label>
+                    <label for="{{ form.logo_url.id_for_label }}">Logo de l’entreprise <span class="optional-mark">PNG, JPG ou WebP</span></label>
                     {{ form.logo_url }}{% for error in form.logo_url.errors %}<div class="error">{{ error }}</div>{% endfor %}
                 </div>
                 <div class="field">
-                    <label for="{{ form.favicon_url.id_for_label }}">Favicon <span class="hint">(PNG ou ICO)</span></label>
+                    <label for="{{ form.favicon_url.id_for_label }}">Favicon <span class="optional-mark">PNG ou ICO</span></label>
                     {{ form.favicon_url }}{% for error in form.favicon_url.errors %}<div class="error">{{ error }}</div>{% endfor %}
                 </div>
                 <div class="field">
-                    <label for="{{ form.slogan.id_for_label }}">Slogan <span class="hint">(facultatif)</span></label>
+                    <label for="{{ form.slogan.id_for_label }}">Slogan <span class="optional-mark">Facultatif</span></label>
                     {{ form.slogan }}{% for error in form.slogan.errors %}<div class="error">{{ error }}</div>{% endfor %}
                 </div>
                 <div class="field">

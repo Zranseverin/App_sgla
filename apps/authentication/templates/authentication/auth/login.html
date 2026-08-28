@@ -125,7 +125,7 @@
             input { min-height: 48px; font-size: 16px; }
         }
     </style>
-    <link rel="stylesheet" href="{% static 'authentication/login.css' %}?v=5">
+    <link rel="stylesheet" href="{% static 'authentication/login.css' %}?v=6">
     <link rel="stylesheet" href="{% static 'branding/cleango-branding.css' %}?v=1">
 </head>
 <body>
@@ -175,7 +175,7 @@
             <form method="post" action="{% url 'authentication:connexion' %}">
                 {% csrf_token %}
                 <div class="field">
-                    <label for="email">Adresse email</label>
+                    <label for="email">Adresse email <span aria-hidden="true">*</span></label>
                     <div class="email-field">
                         <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>
                         <input
@@ -191,7 +191,7 @@
                     </div>
                 </div>
                 <div class="field">
-                    <label for="password">Mot de passe</label>
+                    <label for="password">Mot de passe <span aria-hidden="true">*</span></label>
                     <div class="password-field">
                         <input
                             id="password"
@@ -207,7 +207,13 @@
                         </button>
                     </div>
                 </div>
-                <a class="forgot-link" href="{% url 'authentication:forgot_password' %}">Mot de passe oublié ?</a>
+                <div class="login-options">
+                    <label class="remember-option" for="remember_me">
+                        <input id="remember_me" name="remember_me" type="checkbox"{% if form.remember_me.value %} checked{% endif %}>
+                        <span>Se souvenir de moi</span>
+                    </label>
+                    <a class="forgot-link" href="{% url 'authentication:forgot_password' %}">Mot de passe oublié ?</a>
+                </div>
                 <button type="submit">Se connecter <span>→</span></button>
             </form>
             <p class="register-link">
