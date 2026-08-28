@@ -53,6 +53,8 @@ jobs:
             **/.http-forge/**
             **/.qodo/**
             documentation/**
-            *.png
+            /faithtabernacle-reference.png
+            /homepage-*.png
+            /shiloh-*.png
             shiloh-*.env
             shiloh-*.css
