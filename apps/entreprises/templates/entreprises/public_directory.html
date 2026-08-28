@@ -11,19 +11,16 @@
   <div class="application-ads-track">
     <article class="application-ad application-ad--locate">
       <figure class="application-ad-media application-ad-media--video">
-        <video autoplay muted loop playsinline preload="metadata" poster="{% static 'entreprises/media/publicite-lavage.png' %}" aria-label="Vidéo d’un lavage automobile">
-          <source src="{% static 'entreprises/media/publicite-lavage-video.mp4' %}" type="video/mp4">
-        </video>
-        <span>▶ VIDÉO</span>
+        <img src="{% static 'entreprises/images/sgla-banner-carwash.png' %}" alt="Lavage professionnel d’un véhicule">
       </figure>
       <div><small>AUTOMOBILISTES</small><h3>Une station proche, sans perdre de temps</h3><p>Localisez les professionnels disponibles et contactez-les directement.</p><a href="#finder-map">Voir la carte <b>→</b></a></div>
     </article>
     <article class="application-ad application-ad--business">
-      <figure class="application-ad-media"><img src="{% static 'entreprises/media/publicite-gestion.png' %}" alt="Gestionnaire consultant CleanGo sur son téléphone"></figure>
+      <figure class="application-ad-media"><img src="{% static 'entreprises/images/sgla-banner-carwash.png' %}" alt="Gestion professionnelle d’une station CleanGo"></figure>
       <div><small>PROFESSIONNELS</small><h3>Gérez votre station plus simplement</h3><p>Passages, clients, véhicules, caisse et factures réunis au même endroit.</p><a href="{% url 'authentication:inscription' %}">Démarrer gratuitement <b>→</b></a></div>
     </article>
     <article class="application-ad application-ad--report">
-      <figure class="application-ad-media"><img src="{% static 'entreprises/media/publicite-lavage.png' %}" alt="Lavage professionnel d’un véhicule"></figure>
+      <figure class="application-ad-media"><img src="{% static 'entreprises/images/sgla-banner-carwash.png' %}" alt="Lavage professionnel d’un véhicule"></figure>
       <div><small>PILOTAGE</small><h3>Suivez vos performances en temps réel</h3><p>Visualisez vos lavages, revenus et commissions depuis votre tableau de bord.</p><a href="{% url 'authentication:connexion' %}">Accéder à mon espace <b>→</b></a></div>
     </article>
   </div>
@@ -37,7 +34,7 @@
     <article><b>03</b><h3>Choisissez sereinement</h3><p>Appelez la station ou lancez votre itinéraire en quelques secondes.</p></article>
   </div>
 </section>
-<section class="cleango-journey" aria-labelledby="cleango-journey-title"><header><span>COMMENT ÇA MARCHE ?</span><h2 id="cleango-journey-title">De la recherche à la station,<br><em>CleanGo vous accompagne.</em></h2></header><div class="journey-grid"><article><figure><img src="{% static 'entreprises/media/cleango-localiser-station.png' %}" alt="Automobiliste localisant une station de lavage avec son téléphone" loading="lazy"></figure><div><b>01</b><span>LOCALISEZ</span><h3>Trouvez un service de lavage proche</h3><p>Consultez les entreprises disponibles, leurs catalogues, leurs tarifs et leurs horaires directement depuis votre téléphone.</p><a href="#finder-map">Trouver une station →</a></div></article><article><figure><img src="{% static 'entreprises/media/cleango-suivre-itineraire.png' %}" alt="Automobiliste suivant son itinéraire vers une station de lavage" loading="lazy"></figure><div><b>02</b><span>LAISSEZ-VOUS GUIDER</span><h3>Suivez votre trajet jusqu’à la station</h3><p>Visualisez la distance, la durée estimée et l’itinéraire routier pour rejoindre facilement le professionnel choisi.</p><a href="#finder-map">Voir la carte →</a></div></article></div></section>
+<section class="cleango-journey" aria-labelledby="cleango-journey-title"><header><span>COMMENT ÇA MARCHE ?</span><h2 id="cleango-journey-title">De la recherche à la station,<br><em>CleanGo vous accompagne.</em></h2></header><div class="journey-grid"><article><figure><img src="{% static 'entreprises/images/sgla-banner-carwash.png' %}" alt="Automobiliste localisant une station de lavage avec son téléphone" loading="lazy"></figure><div><b>01</b><span>LOCALISEZ</span><h3>Trouvez un service de lavage proche</h3><p>Consultez les entreprises disponibles, leurs catalogues, leurs tarifs et leurs horaires directement depuis votre téléphone.</p><a href="#finder-map">Trouver une station →</a></div></article><article><figure><img src="{% static 'entreprises/images/sgla-banner-carwash.png' %}" alt="Automobiliste suivant son itinéraire vers une station de lavage" loading="lazy"></figure><div><b>02</b><span>LAISSEZ-VOUS GUIDER</span><h3>Suivez votre trajet jusqu’à la station</h3><p>Visualisez la distance, la durée estimée et l’itinéraire routier pour rejoindre facilement le professionnel choisi.</p><a href="#finder-map">Voir la carte →</a></div></article></div></section>
 <section class="cleango-map-intro"><span>STATIONS À PROXIMITÉ</span><h2>Le lavage automobile,<br><em>accessible en un clic.</em></h2><p>Autorisez votre position, choisissez une entreprise et consultez son catalogue avant de vous déplacer.</p></section>
 <div class="finder-app">
   <aside class="finder-sidebar" id="finder-sidebar">
@@ -62,10 +59,7 @@
     <a href="{% url 'authentication:inscription' %}">Créer mon espace gratuitement →</a>
   </div>
   <div class="cleango-explainer-player">
-    <video controls playsinline preload="metadata" poster="{% static 'entreprises/media/video/scene-03-localisation-catalogue.png' %}">
-      <source src="{% static 'entreprises/media/cleango-parcours-client.mp4' %}?v=3" type="video/mp4">
-      Votre navigateur ne peut pas lire cette vidéo.
-    </video>
+    <img src="{% static 'entreprises/images/sgla-banner-carwash.png' %}" alt="Présentation de l’application CleanGo" loading="lazy">
   </div>
 </section>
 <footer class="site-footer"><div class="footer-main"><div class="footer-about"><a class="site-brand" href="/"><span class="cleango-logo"><img src="{% static 'branding/cleango-logo.png' %}" alt="Logo CleanGo"></span><div><strong>CleanGo</strong><small>L’idée du lavage en un clic</small></div></a><p>La plateforme qui rapproche les automobilistes et les entreprises professionnelles de lavage.</p></div><div><h2>Découvrir</h2><a href="#finder-map">Carte des entreprises</a><a href="#company-list">Toutes les stations</a><a href="/">Trouver près de moi</a></div><div><h2>Professionnels</h2><a href="{% url 'authentication:inscription' %}">Inscrire mon entreprise</a><a href="{% url 'authentication:connexion' %}">Se connecter</a><a href="{% url 'authentication:forgot_password' %}">Mot de passe oublié</a></div><div><h2>Contact</h2><a href="mailto:contact@sgla.ci">contact@sgla.ci</a><span>Abidjan, Côte d’Ivoire</span><span>Disponible 7j/7</span></div></div><div class="footer-bottom"><span>© 2026 CleanGo. Tous droits réservés.</span><span>L’idée du lavage en un clic</span></div></footer><button class="finder-mobile-toggle" id="finder-mobile-toggle">☷ Voir la liste</button>{{ map_companies|json_script:'map-companies' }}<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script><script src="{% static 'entreprises/public_directory.js' %}?v=5"></script><script>(function(){const button=document.querySelector('.site-menu');const nav=document.querySelector('.site-header nav');button?.addEventListener('click',()=>nav.classList.toggle('open'));})();</script></body></html>
