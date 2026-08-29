@@ -1,4 +1,33 @@
-.sgla-hero-banner{min-height:240px;background-image:linear-gradient(100deg,rgba(15,104,64,.96) 0%,rgba(22,138,85,.88) 42%,rgba(242,140,40,.48) 100%),url("images/sgla-banner-carwash.png");background-position:center;background-size:cover;background-repeat:no-repeat}.sgla-hero-banner:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(5,54,32,.24),transparent 58%)}.sgla-hero-banner .banner-content{z-index:2;min-height:240px}@media(max-width:760px){.sgla-hero-banner{min-height:260px;background-position:64% center;background-image:linear-gradient(100deg,rgba(15,104,64,.97),rgba(22,138,85,.9) 63%,rgba(242,140,40,.55)),url("images/sgla-banner-carwash.png")}.sgla-hero-banner .banner-content{min-height:260px}}
+.sgla-hero-banner{position:relative;width:min(1220px,calc(100% - 32px));min-height:330px;margin:16px auto 0;overflow:hidden;border-radius:4px;background-image:linear-gradient(90deg,rgba(4,24,18,.96) 0%,rgba(4,30,21,.86) 38%,rgba(5,34,23,.28) 68%,rgba(5,25,18,.04) 100%),url("images/sgla-banner-carwash.png");background-position:center;background-size:cover;background-repeat:no-repeat;box-shadow:0 12px 35px rgba(20,45,32,.12)}
+.sgla-hero-banner:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.16))}
+.sgla-hero-banner .banner-content{position:relative;z-index:2;display:flex;align-items:center;width:100%;max-width:none;min-height:330px;margin:0;padding:34px}
+.sgla-hero-banner .banner-copy{max-width:620px}
+.sgla-hero-banner .banner-eyebrow{display:inline-flex;margin:0 0 16px;padding:6px 12px;border:1px solid rgba(242,140,40,.55);border-radius:3px;color:#f7a44d;background:rgba(242,140,40,.08);font-size:10px;font-weight:850;letter-spacing:.12em}
+.sgla-hero-banner .banner-copy h1{max-width:650px;margin:0 0 12px;color:#fff;font-family:"DM Sans",Inter,sans-serif;font-size:clamp(38px,4.3vw,58px);font-weight:850;line-height:1.02;letter-spacing:-.045em}
+.sgla-hero-banner .banner-copy h1 em{color:#f28c28;font-style:italic}
+.sgla-hero-banner .banner-copy>p{max-width:540px;margin:0 0 12px;color:rgba(255,255,255,.72);font-size:14px;line-height:1.55}
+.banner-promo{display:inline-flex;align-items:center;gap:8px;margin:0 0 20px;padding:6px 12px;border:1px solid rgba(242,140,40,.38);border-radius:3px;color:#ffd6aa;background:rgba(242,140,40,.12);font-size:11px;font-weight:650}
+.banner-promo span{color:#f28c28;font-size:15px}
+.sgla-hero-banner .banner-actions{display:flex;gap:10px;margin:0}
+.sgla-hero-banner .banner-actions a{display:inline-flex;align-items:center;justify-content:center;gap:18px;min-height:42px;padding:10px 18px;border:1px solid rgba(255,255,255,.42);border-radius:4px;color:#fff;background:rgba(7,35,24,.25);font-size:11px;font-weight:850;text-decoration:none;transition:transform .18s,background .18s,border-color .18s}
+.sgla-hero-banner .banner-actions a:first-child{border-color:#f28c28;background:#f28c28;box-shadow:0 8px 20px rgba(242,140,40,.22)}
+.sgla-hero-banner .banner-actions a:hover{transform:translateY(-1px);border-color:#fff;background:rgba(255,255,255,.12)}
+.sgla-hero-banner .banner-actions a:first-child:hover{border-color:#f7a44d;background:#f7a44d}
+@media(max-width:760px){
+  .sgla-hero-banner{width:calc(100% - 20px);min-height:390px;margin-top:10px;background-position:66% center;background-image:linear-gradient(90deg,rgba(3,25,17,.97) 0%,rgba(4,30,20,.88) 58%,rgba(5,29,20,.38) 100%),url("images/sgla-banner-carwash.png")}
+  .sgla-hero-banner .banner-content{min-height:390px;padding:28px 22px}
+  .sgla-hero-banner .banner-copy{max-width:520px}
+  .sgla-hero-banner .banner-copy h1{font-size:clamp(34px,10vw,46px)}
+  .sgla-hero-banner .banner-copy>p{max-width:430px;font-size:13px}
+}
+@media(max-width:480px){
+  .sgla-hero-banner{min-height:420px;background-position:70% center}
+  .sgla-hero-banner .banner-content{min-height:420px;padding:26px 18px}
+  .sgla-hero-banner .banner-copy h1{font-size:36px}
+  .banner-promo{align-items:flex-start;font-size:10px;line-height:1.35}
+  .sgla-hero-banner .banner-actions{display:grid}
+  .sgla-hero-banner .banner-actions a{width:100%}
+}
 .finder-app,.finder-sidebar,.finder-map-wrap,.finder-map-wrap #finder-map{height:650px!important;min-height:650px!important}
 
 @media(max-width:760px){.finder-app,.finder-map-wrap,.finder-map-wrap #finder-map,.finder-sidebar{height:650px!important;min-height:0!important}}
