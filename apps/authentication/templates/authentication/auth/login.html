@@ -7,139 +7,14 @@
     <title>Connexion | CleanGo</title>
     <link rel="icon" type="image/png" href="{% static 'branding/cleango-logo.png' %}">
     <link rel="apple-touch-icon" href="{% static 'branding/cleango-logo.png' %}">
-    <style>
-        :root {
-            color-scheme: light;
-            --primary: #0e7c86;
-            --primary-dark: #085a62;
-            --background: #f2f7f7;
-            --text: #183438;
-            --muted: #667b7e;
-            --danger: #b42318;
-            --success: #087a55;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            min-height: 100vh;
-            margin: 0;
-            display: grid;
-            place-items: center;
-            padding: 24px;
-            color: var(--text);
-            background:
-                radial-gradient(circle at 10% 10%, #ccebed 0, transparent 34%),
-                radial-gradient(circle at 90% 90%, #dcefee 0, transparent 32%),
-                var(--background);
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-                "Segoe UI", sans-serif;
-        }
-
-        .card {
-            width: min(100%, 430px);
-            padding: 38px;
-            border: 1px solid rgba(14, 124, 134, .14);
-            border-radius: 22px;
-            background: rgba(255, 255, 255, .94);
-            box-shadow: 0 24px 70px rgba(24, 52, 56, .13);
-        }
-
-        .brand {
-            display: inline-grid;
-            place-items: center;
-            width: 48px;
-            height: 48px;
-            margin-bottom: 20px;
-            border-radius: 14px;
-            color: white;
-            background: var(--primary);
-            font-weight: 800;
-            letter-spacing: .04em;
-        }
-
-        h1 { margin: 0 0 8px; font-size: 1.75rem; }
-        .subtitle { margin: 0 0 28px; color: var(--muted); line-height: 1.55; }
-
-        .message {
-            margin-bottom: 18px;
-            padding: 12px 14px;
-            border-radius: 10px;
-            background: #fff1f0;
-            color: var(--danger);
-            font-size: .92rem;
-        }
-
-        .message.success { background: #eaf8f2; color: var(--success); }
-        .field { margin-bottom: 18px; }
-
-        label {
-            display: block;
-            margin-bottom: 7px;
-            font-size: .9rem;
-            font-weight: 650;
-        }
-
-        input {
-            width: 100%;
-            padding: 13px 14px;
-            border: 1px solid #c9d7d8;
-            border-radius: 10px;
-            outline: none;
-            color: var(--text);
-            background: white;
-            font: inherit;
-            transition: border-color .2s, box-shadow .2s;
-        }
-
-        input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(14, 124, 134, .12);
-        }
-
-        button, .button {
-            width: 100%;
-            display: inline-block;
-            padding: 13px 18px;
-            border: 0;
-            border-radius: 10px;
-            color: white;
-            background: var(--primary);
-            font: inherit;
-            font-weight: 750;
-            text-align: center;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        button:hover, .button:hover { background: var(--primary-dark); }
-        .register-link { margin: 20px 0 0; color: var(--muted); text-align: center; font-size: .92rem; }
-        .register-link a { color: var(--primary-dark); font-weight: 750; text-decoration: none; }
-        .forgot-link { display: block; margin: -7px 0 18px; color: var(--primary-dark); font-size: .88rem; font-weight: 700; text-align: right; text-decoration: none; }
-        .connected { padding: 16px; border-radius: 12px; background: #edf7f7; }
-        .connected strong { display: block; margin-bottom: 5px; }
-        .connected p { margin: 0 0 18px; color: var(--muted); }
-
-        @media (max-width: 480px) {
-            body { padding: 12px; }
-            .card { padding: 27px 20px; border-radius: 17px; }
-            h1 { font-size: 1.5rem; }
-            input { min-height: 48px; font-size: 16px; }
-        }
-    </style>
-    <link rel="stylesheet" href="{% static 'authentication/login.css' %}?v=6">
+    <link rel="stylesheet" href="{% static 'authentication/login.css' %}?v=7">
     <link rel="stylesheet" href="{% static 'branding/cleango-branding.css' %}?v=1">
 </head>
 <body>
     <main class="login-shell">
-        <aside class="login-visual">
-            <a class="visual-brand" href="/"><span class="cleango-logo"><img src="{% static 'branding/cleango-logo.png' %}" alt="Logo CleanGo"></span><div><strong>CleanGo</strong><small>L’idée du lavage en un clic</small></div></a>
-            <div class="visual-copy"><span class="eyebrow">GESTION SIMPLE ET CENTRALISÉE</span><h2>Pilotez votre station avec sérénité.</h2><p>Passages, caisse, employés et commissions réunis dans un seul espace professionnel.</p><div class="visual-features"><span>✓ Suivi de l’activité en temps réel</span><span>✓ Gestion sécurisée de votre entreprise</span><span>✓ Accessible sur ordinateur et mobile</span></div></div>
-            <p class="visual-footer">L’idée du lavage en un clic</p>
-        </aside>
         <section class="card">
         <a class="back-home" href="/">← Retour au site</a>
-        <div class="brand">SG</div>
+        <a class="login-brand" href="/" aria-label="CleanGo, accueil"><img src="{% static 'branding/cleango-logo.png' %}" alt="" width="36" height="36"><span>CleanGo</span></a>
 
         {% if messages %}
             {% for message in messages %}
@@ -171,8 +46,8 @@
                 <a class="button" href="{% url 'authentication:deconnexion' %}">Se déconnecter</a>
             </div>
         {% else %}
-            <h1>Bon retour</h1>
-            <p class="subtitle">Connectez-vous avec votre adresse email et votre mot de passe.</p>
+            <h1>Connectez-vous ? votre compte</h1>
+            <p class="subtitle">Retrouvez votre station, votre ?quipe et toute votre activit? dans un seul espace.</p>
 
             <form method="post" action="{% url 'authentication:connexion' %}">
                 {% csrf_token %}
@@ -188,7 +63,6 @@
                             autocomplete="email"
                             placeholder="nom@entreprise.com"
                             required
-                            autofocus
                         >
                     </div>
                 </div>

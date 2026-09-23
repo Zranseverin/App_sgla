@@ -20,6 +20,19 @@ jobs:
       - name: Recuperer le code
         uses: actions/checkout@v4
 
+      - name: Configurer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generer les fichiers statiques de production
+        env:
+          DJANGO_DEBUG: 'False'
+          DJANGO_SECRET_KEY: 'static-build-only-not-used-in-production'
+        run: |
+          python -m pip install -r requirements.txt
+          python manage.py collectstatic --noinput
+
       - name: Preparer le redemarrage Passenger
         run: |
           mkdir -p tmp
@@ -47,7 +60,6 @@ jobs:
             **/*.sqlite3
             **/db.sqlite3
             **/media/**
-            **/staticfiles/**
             **/*.log
             **/.agents/**
             **/.http-forge/**
