@@ -188,6 +188,9 @@ GOOGLE_OAUTH_REDIRECT_URI = config("GOOGLE_OAUTH_REDIRECT_URI", default="")
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+# OSM requires a Referer on browser tile requests. Send only the origin to
+# external HTTPS services, never the page path or query parameters.
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STORAGES = {
     "default": {

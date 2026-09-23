@@ -44,7 +44,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const initialLat = Number.parseFloat(latitude.value) || 5.36;
         const initialLng = Number.parseFloat(longitude.value) || -4.0083;
         locationMap = L.map("enterprise-location-map").setView([initialLat, initialLng], latitude.value && longitude.value ? 16 : 11);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 19, attribution: "&copy; OpenStreetMap"}).addTo(locationMap);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            referrerPolicy: "strict-origin-when-cross-origin",
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(locationMap);
         if (latitude.value && longitude.value) setCoordinates(initialLat, initialLng, false);
         locationMap.on("click", ({latlng}) => {
             setCoordinates(latlng.lat, latlng.lng, false);

@@ -1,8 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const landingStyles = document.createElement("link");
-    landingStyles.rel = "stylesheet";
-    landingStyles.href = "/static/entreprises/agat-inspired.css?v=1";
-    document.head.appendChild(landingStyles);
     const dataNode = document.getElementById("map-companies");
     const companies = dataNode ? JSON.parse(dataNode.textContent) : [];
     const mappedCompanies = companies.filter((company) => company.lat !== null && company.lng !== null);
@@ -20,9 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const initialSearch = new URLSearchParams(location.search).get("q");
     if (initialSearch) trackEvent("search", {search_query: initialSearch});
     const map = L.map("finder-map", {center: [5.36, -4.0083], zoom: 12, zoomControl: true});
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        attribution: "&copy; OpenStreetMap",
+        referrerPolicy: "strict-origin-when-cross-origin",
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
     const markers = new Map();
