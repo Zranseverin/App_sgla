@@ -801,6 +801,12 @@ def company_register_view(request):
                 user.set_password(form.cleaned_data.get('password') or secrets.token_urlsafe(32))
                 user.save()
 
+            try:
+                send_welcome_email(user, entreprise)
+            except Exception:
+                logger.exception('?chec du mail de bienvenue utilisateur=%s', user.pk)
+                messages.warning(request, 'Votre compte est cr??, mais le mail de bienvenue n?a pas pu ?tre envoy?. Vous pouvez vous connecter.')
+
             messages.success(
                 request,
                 f'Compte créé avec succès. Votre essai {plan.nom} de '
@@ -880,12 +886,27 @@ def google_auth_callback(request):
         messages.error(request, 'Google n’a pas pu vérifier votre compte. Veuillez réessayer.')
         return redirect('authentication:inscription')
 
-    if not profile.get('email') or not profile.get('email_verified'):
+    if not profile.get('email') or profile.get('email_verified') is not True or not profile.get('sub'):
         messages.error(request, 'Votre adresse email Google doit être vérifiée.')
         return redirect('authentication:inscription')
-    if User.objects.filter(email__iexact=profile['email']).exists():
-        messages.error(request, 'Un compte existe déjà avec cette adresse. Connectez-vous.')
-        return redirect('authentication:connexion')
+    existing_users = list(User.objects.filter(email__iexact=profile['email'])[:2])
+    if existing_users:
+        # Only Google-hosted, verified addresses establish current ownership.
+        authoritative_email = profile['email'].lower().endswith('@gmail.com') or bool(profile.get('hd'))
+        if len(existing_users) != 1 or not authoritative_email:
+            messages.error(request, 'Pour ce compte, veuillez vous connecter avec votre mot de passe ou le r?initialiser.')
+            return redirect('authentication:connexion')
+        user = existing_users[0]
+        if user.statut != 'actif':
+            messages.error(request, 'Ce compte est inactif. Contactez votre administrateur.')
+            return redirect('authentication:connexion')
+        request.session.flush()
+        request.session['utilisateur_id'] = user.pk
+        request.session.set_expiry(0)
+        user.updated_at = timezone.now()
+        user.save(update_fields=['updated_at'])
+        messages.success(request, f'Bienvenue {user.nom} !')
+        return redirect('dashboard:index')
 
     request.session['google_signup_identity'] = {
         'sub': profile.get('sub', ''),
@@ -1300,30 +1321,19 @@ def send_welcome_email(user, entreprise):
     """
     Envoie un email de bienvenue
     """
-    subject = f"Bienvenue sur {settings.PROJECT_NAME}"
-    message = f"""
-    Bonjour {user.nom},
-    
-    Bienvenue sur {settings.PROJECT_NAME} !
-    
-    Votre compte a été créé avec succès pour l'entreprise {entreprise.raison_sociale}.
-    
-    Vous pouvez vous connecter avec vos identifiants :
-    Email: {user.email}
-    
-    Lien de connexion: {settings.BASE_URL}/login
-    
-    Cordialement,
-    L'équipe {settings.PROJECT_NAME}
-    """
-    
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=False
+    login_url = settings.PUBLIC_BASE_URL.rstrip('/') + reverse('authentication:connexion')
+    subject = 'Bienvenue sur CleanGo'
+    message = (
+        f'Bonjour {user.nom},\n\n'
+        f'Votre compte CleanGo est cr?? pour {entreprise.raison_sociale}.\n'
+        f'Votre adresse de connexion : {user.email}\n\n'
+        f'Acc?der ? votre espace : {login_url}\n'
+        'Si vous avez cr?? votre compte avec Google, choisissez ? Continuer avec Google ?.\n'
+        'Sinon, utilisez le mot de passe choisi pendant votre inscription.\n\n'
+        'L??quipe CleanGo'
     )
+    if send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False) != 1:
+        raise RuntimeError('Le serveur de messagerie n?a accept? aucun message de bienvenue.')
 
 
 def send_password_reset_email(user, token):

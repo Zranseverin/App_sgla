@@ -52,26 +52,28 @@ class RegisterForm(forms.Form):
         max_length=100,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Votre nom complet'
+            'placeholder': 'Votre nom complet', 'autocomplete': 'name'
         })
     )
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Votre email'
+            'placeholder': 'Votre email', 'autocomplete': 'username'
         })
     )
     password = forms.CharField(
         min_length=8,
         widget=forms.PasswordInput(attrs={
+            'autocomplete': 'new-password',
             'class': 'form-control',
             'placeholder': 'Mot de passe (minimum 8 caractères)'
         })
     )
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(attrs={
+            'autocomplete': 'new-password',
             'class': 'form-control',
-            'placeholder': 'Confirmer le mot de passe'
+            'placeholder': 'Confirmer le mot de passe', 'autocomplete': 'new-password'
         })
     )
     entreprise_nom = forms.CharField(

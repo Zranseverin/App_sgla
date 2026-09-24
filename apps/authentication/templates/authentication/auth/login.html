@@ -49,6 +49,8 @@
             <h1>Connectez-vous ? votre compte</h1>
             <p class="subtitle">Retrouvez votre station, votre ?quipe et toute votre activit? dans un seul espace.</p>
 
+            <a class="google-login" href="{% url 'authentication:google_auth_start' %}">Continuer avec Google</a>
+            <div class="login-divider">ou avec votre email</div>
             <form method="post" action="{% url 'authentication:connexion' %}">
                 {% csrf_token %}
                 <div class="field">
