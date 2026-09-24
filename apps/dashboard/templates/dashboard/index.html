@@ -8,7 +8,7 @@
   {% if entreprise.favicon_url %}<link rel="icon" href="{{ entreprise.favicon_url.url }}">{% endif %}
   <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}?v=2">
   <link rel="stylesheet" href="{% static 'dashboard/dynamic.css' %}?v=5">
-  <link rel="stylesheet" href="{% static 'dashboard/reporting-dashboard.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'dashboard/reporting-dashboard.css' %}?v=2">
 </head>
 <body class="dashboard-body" style="--company-color:{{ entreprise.couleur_principale|default:'#1462d2' }}">
 {% include 'dashboard/partials/sidebar.html' %}
@@ -16,6 +16,21 @@
   {% include 'dashboard/partials/header.html' %}
   <main class="report-dashboard">
     {% if messages %}{% for message in messages %}<div class="dashboard-alert">{{ message }}</div>{% endfor %}{% endif %}
+
+    <section class="analytics-board" aria-labelledby="analytics-title">
+      <header class="analytics-heading"><div><span>VOTRE ACTIVIT? EN UN COUP D??IL</span><h1 id="analytics-title">Vue d?ensemble</h1></div><p>{{ month_start|date:"F Y" }} ? {{ entreprise.devise }}</p></header>
+      <div class="analytics-kpis">
+        <article class="analytics-kpi filled"><h2>Lavages du mois</h2><strong>{{ stats.passages_month }}</strong><footer><span>{{ stats.completed_month }} termin?s</span><small>{{ stats.passages_today }} aujourd?hui</small></footer></article>
+        <article class="analytics-kpi filled"><h2>Clients enregistr?s</h2><strong>{{ stats.clients }}</strong><footer><span>{{ stats.vehicles }} v?hicules</span><small>Total entreprise</small></footer></article>
+        <article class="analytics-kpi"><h2>Encaissements du mois</h2><strong>{{ stats.revenue_month|floatformat:0 }} <small>{{ entreprise.devise }}</small></strong><footer><span>Hors annulations</span><small>Mois en cours</small></footer></article>
+        <article class="analytics-kpi"><h2>Lavages en attente</h2><strong>{{ stats.waiting_month }}</strong><footer><span class="pending">{{ stats.in_progress_month }} en cours</span><small>Mois en cours</small></footer></article>
+      </div>
+      <div class="analytics-charts">
+        <article class="analytics-panel revenue-panel"><h2>?volution des encaissements</h2><p>Sept derniers jours ? {{ entreprise.devise }}</p><svg id="revenue-evolution-chart" viewBox="0 0 700 240" role="img" aria-label="Encaissements par jour, d?taill?s dans le tableau ci-dessous"></svg><details><summary>Voir les montants par jour</summary><table><thead><tr><th>Date</th><th>Encaissements</th></tr></thead><tbody>{% for day in daily_data %}<tr><td>{{ day.label }}</td><td>{{ day.revenue|floatformat:0 }} {{ entreprise.devise }}</td></tr>{% endfor %}</tbody></table></details></article>
+        <article class="analytics-panel activity-panel"><h2>Fr?quentation de la station</h2><p>Lavages hors annulations ? Sept derniers jours</p><div class="analytics-bars">{% for day in daily_data %}<div><strong>{{ day.count }}</strong><div class="analytics-track"><span style="height:{% if day.count %}{{ day.height }}{% else %}0{% endif %}%"></span></div><small>{{ day.label }}</small></div>{% endfor %}</div></article>
+        <article class="analytics-panel completion-panel"><h2>R?alisation des lavages</h2><p>Mois en cours</p><strong class="completion-value">{{ stats.completion_rate }}<small>%</small></strong><p>{{ stats.completed_month }} termin?s sur {{ stats.passages_month }} enregistr?s</p><progress value="{{ stats.completion_rate }}" max="100" aria-label="Pourcentage de lavages termin?s">{{ stats.completion_rate }}%</progress><div class="completion-legend"><span>{{ stats.waiting_month }} en attente</span><span>{{ stats.in_progress_month }} en cours</span></div></article>
+      </div>
+    </section>
 
     <section class="report-summary">
       <article class="company-summary">
@@ -115,6 +130,6 @@
 {{ daily_data|json_script:"dashboard-daily-data" }}
 {{ status_breakdown|json_script:"dashboard-status-data" }}
 <script src="{% static 'dashboard/dashboard.js' %}"></script>
-<script src="{% static 'dashboard/dashboard-charts.js' %}?v=2"></script>
+<script src="{% static 'dashboard/dashboard-charts.js' %}?v=3"></script>
 </body>
 </html>
